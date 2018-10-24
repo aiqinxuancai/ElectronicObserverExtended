@@ -311,6 +311,7 @@ namespace ElectronicObserver.Window.Plugins
             Utility.ErrorReporter.SendErrorReport(ex, DomainName + "插件中错误：" + ex.Message);
         }
     }
+
     [Obsolete]
     class ElectronicPluginFactory : MarshalByRefObject
     {

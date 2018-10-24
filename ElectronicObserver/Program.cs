@@ -8,15 +8,26 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using ElectronicObserver.Utility;
+using System.Runtime.InteropServices;
 
 namespace ElectronicObserver
 {
-	static class Program
+    class NoActivationWindow
+    {
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr LoadLibrary(string dllToLoad);
+    }
+
+
+
+
+    static class Program
 	{
-		/// <summary>
-		/// アプリケーションのメイン エントリ ポイントです。
-		/// </summary>
-		[STAThread]
+
+        /// <summary>
+        /// アプリケーションのメイン エントリ ポイントです。
+        /// </summary>
+        [STAThread]
 		static void Main(string[] args)
 		{
 
@@ -50,7 +61,20 @@ namespace ElectronicObserver
 					return;
 				}
 
-				Application.EnableVisualStyles();
+
+                //加载防止置前的dll
+                if (Environment.Is64BitProcess)
+                {
+                    NoActivationWindow.LoadLibrary("PoiNoActivationWindow64.dll");
+                }
+                else
+                {
+                    NoActivationWindow.LoadLibrary("PoiNoActivationWindow.dll");
+                }
+                
+
+
+                Application.EnableVisualStyles();
 				Application.SetCompatibleTextRenderingDefault(false);
 				Application.Run(new FormMain());
 

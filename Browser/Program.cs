@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Browser
 {
-	static class Program
+    class NoActivationWindow
+    {
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr LoadLibrary(string dllToLoad);
+    }
+
+    static class Program
 	{
 		/// <summary>
 		/// アプリケーションのメイン エントリ ポイントです。
@@ -21,7 +28,18 @@ namespace Browser
 					"情報", MessageBoxButtons.OK, MessageBoxIcon.Information);
 				return;
 			}
-			Application.EnableVisualStyles();
+
+            if (Environment.Is64BitProcess)
+            {
+                NoActivationWindow.LoadLibrary("PoiNoActivationWindow64.dll");
+            }
+            else
+            {
+                NoActivationWindow.LoadLibrary("PoiNoActivationWindow.dll");
+            }
+
+
+            Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 			Application.Run(new FormBrowser(args[0]));
