@@ -120,6 +120,7 @@ namespace ElectronicObserver.Window
 			o["api_req_sortie/airbattle"].ResponseReceived += Updated;
 			o["api_req_sortie/ld_airbattle"].ResponseReceived += Updated;
 			o["api_req_sortie/night_to_day"].ResponseReceived += Updated;
+			o["api_req_sortie/ld_shooting"].ResponseReceived += Updated;
 			o["api_req_combined_battle/battle"].ResponseReceived += Updated;
 			o["api_req_combined_battle/midnight_battle"].ResponseReceived += Updated;
 			o["api_req_combined_battle/sp_midnight"].ResponseReceived += Updated;
@@ -131,6 +132,7 @@ namespace ElectronicObserver.Window
 			o["api_req_combined_battle/ec_night_to_day"].ResponseReceived += Updated;
 			o["api_req_combined_battle/each_battle"].ResponseReceived += Updated;
 			o["api_req_combined_battle/each_battle_water"].ResponseReceived += Updated;
+			o["api_req_combined_battle/ld_shooting"].ResponseReceived += Updated;
 			o["api_req_combined_battle/battleresult"].ResponseReceived += Updated;
 			o["api_req_practice/battle"].ResponseReceived += Updated;
 			o["api_req_practice/midnight_battle"].ResponseReceived += Updated;
@@ -178,6 +180,7 @@ namespace ElectronicObserver.Window
 				case "api_req_sortie/battle":
 				case "api_req_practice/battle":
 				case "api_req_sortie/ld_airbattle":
+				case "api_req_sortie/ld_shooting":
 					{
 
 						SetFormation(bm);
@@ -263,6 +266,7 @@ namespace ElectronicObserver.Window
 				case "api_req_combined_battle/ec_battle":
 				case "api_req_combined_battle/each_battle":
 				case "api_req_combined_battle/each_battle_water":
+				case "api_req_combined_battle/ld_shooting":
 					{
 
 						SetFormation(bm);
@@ -543,7 +547,7 @@ namespace ElectronicObserver.Window
 		}
 
 
-		
+
 		private void SetAerialWarfare(PhaseAirBattleBase phaseJet, PhaseAirBattleBase phase1) => SetAerialWarfare(phaseJet, phase1, null);
 
 		/// <summary>
@@ -584,9 +588,9 @@ namespace ElectronicObserver.Window
 				else
 					label.ForeColor = SystemColors.ControlText;
 
-                label.ImageAlign = ContentAlignment.MiddleCenter;
-                label.ImageIndex = -1;
-            }
+				label.ImageAlign = ContentAlignment.MiddleCenter;
+				label.ImageIndex = -1;
+			}
 
 			void ClearAACutinLabel()
 			{
@@ -1086,7 +1090,7 @@ namespace ElectronicObserver.Window
 				{
 					ShipData ship = fleet.MembersInstance[index];
 
-					AirStage1Friend.Text = "#" + (index + 1);
+					AirStage1Friend.Text = "#" + (index + (pd.IsFriendEscort ? 6 : 0) + 1);
 					AirStage1Friend.ForeColor = SystemColors.ControlText;
 					AirStage1Friend.ImageAlign = ContentAlignment.MiddleLeft;
 					AirStage1Friend.ImageIndex = (int)ResourceManager.EquipmentContent.Searchlight;
@@ -1103,7 +1107,7 @@ namespace ElectronicObserver.Window
 				int index = pd.SearchlightIndexEnemy;
 				if (index != -1)
 				{
-					AirStage1Enemy.Text = "#" + (index + 1);
+					AirStage1Enemy.Text = "#" + (index + (pd.IsEnemyEscort ? 6 : 0) + 1);
 					AirStage1Enemy.ForeColor = SystemColors.ControlText;
 					AirStage1Enemy.ImageAlign = ContentAlignment.MiddleLeft;
 					AirStage1Enemy.ImageIndex = (int)ResourceManager.EquipmentContent.Searchlight;
