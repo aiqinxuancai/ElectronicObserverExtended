@@ -1,4 +1,4 @@
-version: 4.0.2.0-extended.{build}
+version: 4.1.2.0-extended.{build}
 
 branches:
     only:
@@ -9,7 +9,7 @@ skip_tags: true
 assembly_info:
     patch: true
     file: AssemblyInfo.*
-    assembly_version: "4.0.2.{build}"
+    assembly_version: "4.1.2.{build}"
     assembly_file_version: "{version}"
     assembly_informational_version: "{version}"
 
@@ -25,28 +25,42 @@ before_build:
     - copy NUL output-template\Plugins\plugin_dir
 
 build_script:
-    - xcopy /S /E output-template output\
+    - REM ================ net45 ================
     - git submodule update --init --recursive
     - nuget restore
-    - msbuild ElectronicObserver.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-    - move output output-net45
-    - xcopy /S /E output-template output\
-    - msbuild ElectronicObserver.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /p:Configuration=Release
-    - move output output-net45-release
+    - msbuild ElectronicObserver.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /p:Configuration=Release /m
+    - REM ================ Package CEF flavors ================
+    - xcopy /E /Y output-template output-net45-cef-full\
+    - xcopy /E /Y output\ElectronicObserver output-net45-cef-full\
+    - xcopy /E /Y output\Browser output-net45-cef-full\
+    - xcopy /E output-net45-cef-full output-net45-cef\
+    - rmdir /S /Q output-net45-cef\x86
+    - rmdir /S /Q output-net45-cef\x64
+    - REM ================ Package Gecko flavors ================
+    - xcopy /E /Y output-template output-net45-gecko-full\
+    - xcopy /E /Y output\ElectronicObserver output-net45-gecko-full\
+    - xcopy /E /Y output\GeckoBrowser output-net45-gecko-full\
+    - xcopy /E output-net45-gecko-full output-net45-gecko\
+    - rmdir /S /Q output-net45-gecko\Firefox
+    - REM ================ net40 ================
+    - msbuild ElectronicObserver.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Clean
     - git checkout extended-net40
-    - xcopy /S /E output-template output\
+    - xcopy /E output-template output-net40\
     - git submodule sync
     - git submodule update --init --recursive
     - nuget restore
     - msbuild ElectronicObserver.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-    - move output output-net40
     - ps: if (!((git branch --contains $env:APPVEYOR_REPO_COMMIT) -like '*extended-net40')) { exit -1 }
 
 artifacts:
-    - path: output-net45
-      name: 74eoe-$(APPVEYOR_BUILD_VERSION)
-    - path: output-net45-release
-      name: 74eoe-release-$(APPVEYOR_BUILD_VERSION)
+    - path: output-net45-cef-full
+      name: 74eoe-cef-full-$(APPVEYOR_BUILD_VERSION)
+    - path: output-net45-cef
+      name: 74eoe-cef-$(APPVEYOR_BUILD_VERSION)
+    - path: output-net45-gecko-full
+      name: 74eoe-gecko-full-$(APPVEYOR_BUILD_VERSION)
+    - path: output-net45-gecko
+      name: 74eoe-gecko-$(APPVEYOR_BUILD_VERSION)
     - path: output-net40
       name: 74eoe-net40-$(APPVEYOR_BUILD_VERSION)
 

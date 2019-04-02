@@ -622,6 +622,7 @@ namespace ElectronicObserver.Window
 			o["api_req_sortie/night_to_day"].ResponseReceived += BattleStarted;
 			o["api_req_sortie/airbattle"].ResponseReceived += BattleStarted;
 			o["api_req_sortie/ld_airbattle"].ResponseReceived += BattleStarted;
+			o["api_req_sortie/ld_shooting"].ResponseReceived += BattleStarted;
 			o["api_req_combined_battle/battle"].ResponseReceived += BattleStarted;
 			o["api_req_combined_battle/sp_midnight"].ResponseReceived += BattleStarted;
 			o["api_req_combined_battle/airbattle"].ResponseReceived += BattleStarted;
@@ -631,6 +632,7 @@ namespace ElectronicObserver.Window
 			o["api_req_combined_battle/each_battle"].ResponseReceived += BattleStarted;
 			o["api_req_combined_battle/each_battle_water"].ResponseReceived += BattleStarted;
 			o["api_req_combined_battle/ec_night_to_day"].ResponseReceived += BattleStarted;
+			o["api_req_combined_battle/ld_shooting"].ResponseReceived += BattleStarted;
 			o["api_req_practice/battle"].ResponseReceived += BattleStarted;
 
 
@@ -641,7 +643,7 @@ namespace ElectronicObserver.Window
 		private void Updated(string apiname, dynamic data)
 		{
 
-			Func<int, Color> getColorFromEventKind = (int kind) =>
+			Color getColorFromEventKind(int kind)
 			{
 				switch (kind)
 				{
@@ -659,8 +661,10 @@ namespace ElectronicObserver.Window
 						return Color.DarkRed;
 					case 7:     // 夜昼戦(対連合艦隊)
 						return Color.Navy;
+					case 8:     // レーダー射撃
+						return Color.Navy;
 				}
-			};
+			}
 
 			if (apiname == "api_port/port")
 			{
@@ -707,14 +711,11 @@ namespace ElectronicObserver.Window
 				{
 					var mapinfo = compass.MapInfo;
 
-					if (mapinfo.IsCleared)
+					if (mapinfo.RequiredDefeatedCount != -1 && mapinfo.CurrentDefeatedCount < mapinfo.RequiredDefeatedCount)
 					{
-						ToolTipInfo.SetToolTip(TextMapArea, null);
-
-					}
-					else if (mapinfo.RequiredDefeatedCount != -1)
-					{
-						ToolTipInfo.SetToolTip(TextMapArea, string.Format("撃破: {0} / {1} 回", mapinfo.CurrentDefeatedCount, mapinfo.RequiredDefeatedCount));
+						ToolTipInfo.SetToolTip(TextMapArea, string.Format("{0}撃破: {1} / {2} 回",
+							mapinfo.CurrentGaugeIndex > 0 ? $"#{mapinfo.CurrentGaugeIndex} " : "",
+							mapinfo.CurrentDefeatedCount, mapinfo.RequiredDefeatedCount));
 
 					}
 					else if (mapinfo.MapHPMax > 0)
@@ -723,7 +724,7 @@ namespace ElectronicObserver.Window
 						int max = compass.MapHPMax > 0 ? compass.MapHPMax : mapinfo.MapHPMax;
 
 						ToolTipInfo.SetToolTip(TextMapArea, string.Format("{0}{1}: {2} / {3}",
-							mapinfo.CurrentGaugeIndex > 0 ? "#" + mapinfo.CurrentGaugeIndex + " " : "",
+							mapinfo.CurrentGaugeIndex > 0 ? $"#{mapinfo.CurrentGaugeIndex} " : "",
 							mapinfo.GaugeType == 3 ? "TP" : "HP", current, max));
 
 					}
@@ -862,68 +863,21 @@ namespace ElectronicObserver.Window
 								case 6:
 									eventkind = "静かな海";
 									break;
-								case 7:
-									eventkind = "対潜警戒進撃中";
-									break;
-								case 8:
-									eventkind = "敵哨戒機発見";
-									break;
-								case 9:
-									eventkind = "栗田艦隊進撃中";
-									break;
-								case 10:
-									eventkind = "西村艦隊進撃中";
-									break;
-								case 11:
-									eventkind = "スリガオ海峡突入"; // 西村
-									break;
-								case 12:
-									eventkind = "シブヤン海突入";
-									break;
-								case 13:
-									eventkind = "輸送作戦失敗";
-									break;
-								case 14:
-									eventkind = "シブヤン海進撃中"; // 栗田
-									break;
-								case 15:
-									eventkind = "サマール沖進撃中";
-									break;
-								case 16:
-									eventkind = "西村艦隊突入"; // 西村
-									break;
-								case 17:
-									eventkind = "小沢艦隊出撃";
-									break;
-								case 18:
-									eventkind = "パナイ島";
-									break;
-								case 19:
-									eventkind = "ミンダナオ島入港";
-									break;
-								case 20:
-									eventkind = "志摩艦隊出撃";
-									break;
-								case 21:
-									eventkind = "敵哨戒機発見";
-									break;
-								case 22:
-									eventkind = "対空対潜警戒";
-									break;
-								case 23:
-									eventkind = "高速艦艇出撃";
-									break;
-								case 24:
-									eventkind = "機動部隊出撃";
-									break;
-								case 25:
-									eventkind = "艦隊決戦";
-									break;
 							}
+
 							if (compass.RouteChoices != null)
+							{
 								TextEventDetail.Text = string.Join("/", compass.RouteChoices);
+							}
+							else if (compass.FlavorTextType != -1)
+							{
+								TextEventDetail.Text = "◆";
+								ToolTipInfo.SetToolTip(TextEventDetail, compass.FlavorText);
+							}
 							else
+							{
 								TextEventDetail.Text = "";
+							}
 
 							break;
 

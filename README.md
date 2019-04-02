@@ -6,7 +6,7 @@
 
 ## 実装されている機能
 
-![](https://github.com/andanteyk/ElectronicObserver/wiki/media/mainimage2.png)
+![](https://github.com/andanteyk/ElectronicObserver/wiki/media/mainimage3.png)
 
 各機能はそれぞれウィンドウとして独立しており、自由にドッキング・タブ化するなどしてレイアウト可能です。  
 以下では概略を紹介します。**詳しくは[Wikiを参照](https://github.com/andanteyk/ElectronicObserver/wiki)してください。**  
@@ -43,6 +43,8 @@ To maintain compatibility with plugins developed for tsanie's fork, ElectronicOb
 
 [Download Extended / 拡張版のダウンロード](https://ci.appveyor.com/project/CNA-Bld/electronicobserverextended/build/artifacts)
 
+[Flavors of Distribution](https://github.com/CAWAS/ElectronicObserverExtended/wiki/Flavors)
+
 
 ## ダウンロード
 
@@ -71,6 +73,7 @@ To maintain compatibility with plugins developed for tsanie's fork, ElectronicOb
 * [SwfExtractor](https://github.com/andanteyk/SwfExtractor) (swf からファイル抽出) - [MIT License](https://github.com/andanteyk/ElectronicObserver/blob/master/Licenses/SwfExtractor.txt)
 	* [LZMA SDK (Software Development Kit)](http://www.7-zip.org/sdk.html) - Public Domain
 * [FiddlerCore](http://www.telerik.com/fiddler/fiddlercore) - [End User License Agreement for FiddlerCore](https://github.com/CAWAS/ElectronicObserverExtended/blob/extended/Licenses/FiddlerCore.txt)
+* [GeckoFX](https://bitbucket.org/geckofx/geckofx-60.0) - [Mozilla Public License](https://github.com/CAWAS/ElectronicObserverExtended/blob/extended/Licenses/MPL.txt)
 
 
 ## 連絡先など
