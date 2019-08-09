@@ -1,5 +1,5 @@
 
-## 七四式電子観測儀拡張版 / ElectronicObserverExtended (EOE)
+# 七四式電子観測儀拡張版 / ElectronicObserverExtended (EOE)
 
 現在鋭意開発中の艦これ補助ブラウザです。  
 
@@ -70,8 +70,6 @@ To maintain compatibility with plugins developed for tsanie's fork, ElectronicOb
 * [Nekoxy](https://github.com/veigr/Nekoxy) (通信キャプチャ) - [MIT License](https://github.com/andanteyk/ElectronicObserver/blob/master/Licenses/Nekoxy.txt)
     * [TrotiNet](http://trotinet.sourceforge.net/) - [GNU Lesser General Public License v3.0](https://github.com/andanteyk/ElectronicObserver/blob/master/Licenses/LGPL.txt)
         * [log4net](https://logging.apache.org/log4net/) - [Apache License version 2.0](https://github.com/andanteyk/ElectronicObserver/blob/master/Licenses/Apache.txt)
-* [SwfExtractor](https://github.com/andanteyk/SwfExtractor) (swf からファイル抽出) - [MIT License](https://github.com/andanteyk/ElectronicObserver/blob/master/Licenses/SwfExtractor.txt)
-	* [LZMA SDK (Software Development Kit)](http://www.7-zip.org/sdk.html) - Public Domain
 * [FiddlerCore](http://www.telerik.com/fiddler/fiddlercore) - [End User License Agreement for FiddlerCore](https://github.com/CAWAS/ElectronicObserverExtended/blob/extended/Licenses/FiddlerCore.txt)
 * [GeckoFX](https://bitbucket.org/geckofx/geckofx-60.0) - [Mozilla Public License](https://github.com/CAWAS/ElectronicObserverExtended/blob/extended/Licenses/MPL.txt)
 
@@ -81,3 +79,4 @@ To maintain compatibility with plugins developed for tsanie's fork, ElectronicOb
 * 配布サイト:[ブルネイ工廠電気実験部](http://electronicobserver.blog.fc2.com/) (バグ報告・要望等はこちらにお願いします)
 * 開発:[Andante](https://twitter.com/andanteyk)
 * 拡張版開発:[中国ホワイト（アルバム）学院](https://github.com/CAWAS)
+

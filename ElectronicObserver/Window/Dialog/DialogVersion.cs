@@ -47,5 +47,10 @@ namespace ElectronicObserver.Window.Dialog
 
 			this.Icon = ResourceManager.Instance.AppIcon;
 		}
+
+		private void TextExtended_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			System.Diagnostics.Process.Start("https://github.com/CAWAS/ElectronicObserverExtended");
+		}
 	}
 }

@@ -110,6 +110,8 @@ namespace ElectronicObserver.Data
 					return "SSホロ'";
 				case 6:
 					return "SSホロ+";
+                case 7:
+                    return "SS++";
 				default:
 					return "不明";
 			}
@@ -125,17 +127,19 @@ namespace ElectronicObserver.Data
 				case 0:
 					return 1;
 				case 1:
-					return 3;
+					return 2;
 				case 2:
-					return 4;
+					return 3;
 				case 3:
-					return 5;
+					return 4;
 				case 4:
-					return 6;
+					return 5;
 				case 5:
-					return 7;
+					return 6;
 				case 6:
-					return 8;
+					return 7;
+                case 7:
+                    return 8;
 				default:
 					return 0;
 			}
@@ -764,7 +768,13 @@ namespace ElectronicObserver.Data
 					return "Nelson Touch";
 				case DayAttackKind.SpecialNagato:
 					return "一斉射かッ…胸が熱いな！";
-				case DayAttackKind.Shelling:
+                case DayAttackKind.SpecialMutsu:
+                    return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
+                case DayAttackKind.ZuiunMultiAngle:
+                    return "瑞雲立体攻撃";
+                case DayAttackKind.SeaAirMultiAngle:
+                    return "海空立体攻撃";
+                case DayAttackKind.Shelling:
 					return "砲撃";
 				case DayAttackKind.AirAttack:
 					return "空撃";
@@ -785,7 +795,7 @@ namespace ElectronicObserver.Data
 				case DayAttackKind.LandingTokuDaihatsuTank:
 					return "揚陸攻撃(特大発戦車)";
 				default:
-					return "不明";
+					return "不明(" + (int)id + ")";
 			}
 		}
 
@@ -819,7 +829,9 @@ namespace ElectronicObserver.Data
 					return "Nelson Touch";
 				case NightAttackKind.SpecialNagato:
 					return "一斉射かッ…胸が熱いな！";
-				case NightAttackKind.Shelling:
+                case NightAttackKind.SpecialMutsu:
+                    return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
+                case NightAttackKind.Shelling:
 					return "砲撃";
 				case NightAttackKind.AirAttack:
 					return "空撃";
@@ -840,8 +852,8 @@ namespace ElectronicObserver.Data
 				case NightAttackKind.LandingTokuDaihatsuTank:
 					return "揚陸攻撃(特大発戦車)";
 				default:
-					return "不明";
-			}
+					return "不明(" + (int)id + ")";
+            }
 		}
 
 
@@ -925,7 +937,7 @@ namespace ElectronicObserver.Data
 				case 37:
 					return "Fletcher砲改x2<Johnston>";
 				default:
-					return "不明";
+					return "不明(" + id + ")";
 			}
 		}
 

@@ -29,20 +29,20 @@ namespace ElectronicObserver.Utility
 		/// <summary>
 		/// バージョン(日本語, ソフトウェア名を含みます)
 		/// </summary>
-		public static string VersionJapanese => SoftwareNameJapanese + "四一型改";
+		public static string VersionJapanese => SoftwareNameJapanese + "四二型改";
 
 
 		/// <summary>
 		/// バージョン(英語)
 		/// </summary>
-		public static string VersionEnglish => "4.1.1";
+		public static string VersionEnglish => "4.2.1";
 
 
 
 		/// <summary>
 		/// 更新日時
 		/// </summary>
-		public static DateTime UpdateTime => DateTimeHelper.CSVStringToTime("2019/01/08 23:30:00");
+		public static DateTime UpdateTime => DateTimeHelper.CSVStringToTime("2019/06/30 21:00:00");
 
 
 
@@ -114,7 +114,7 @@ namespace ElectronicObserver.Utility
 						if (result == System.Windows.Forms.DialogResult.Yes)
 						{
                             
-							System.Diagnostics.Process.Start("https://ci.appveyor.com/project/CNA-Bld/electronicobserverextended/build/artifacts");
+							System.Diagnostics.Process.Start("https://cawas.github.io/ElectronicObserverExtended");
 
 						}
 						else if (result == System.Windows.Forms.DialogResult.Cancel)

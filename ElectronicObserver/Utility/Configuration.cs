@@ -448,6 +448,10 @@ namespace ElectronicObserver.Utility
 				/// </summary>
 				public int ExpCheckerExpUnit { get; set; }
 
+                /// <summary>
+                /// 遠征に失敗する可能性があるとき警告ダイアログを表示するか
+                /// </summary>
+                public bool ShowExpeditionAlertDialog { get; set; }
 
 				public ConfigControl()
 				{
@@ -459,6 +463,7 @@ namespace ElectronicObserver.Utility
 					PowerEngagementForm = 1;
 					ShowSallyAreaAlertDialog = true;
 					ExpCheckerExpUnit = 2268;
+                    ShowExpeditionAlertDialog = true;
 				}
 			}
 			/// <summary>動作</summary>
@@ -1024,6 +1029,10 @@ namespace ElectronicObserver.Utility
 				/// </summary>
 				public bool ForceColorProfile { get; set; }
 
+                /// <summary>
+                /// ブラウザのログを保存するか
+                /// </summary>
+                public bool SavesBrowserLog { get; set; }
 
 				public ConfigFormBrowser()
 				{
@@ -1044,7 +1053,8 @@ namespace ElectronicObserver.Utility
 					ConfirmAtRefresh = true;
 					HardwareAccelerationEnabled = true;
 					PreserveDrawingBuffer = true;
-					ForceColorProfile = false;	
+					ForceColorProfile = false;
+                    SavesBrowserLog = false;
 				}
 			}
 			/// <summary>[ブラウザ]ウィンドウ</summary>

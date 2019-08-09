@@ -240,6 +240,7 @@ namespace ElectronicObserver.Window
 				config.HardwareAccelerationEnabled = c.HardwareAccelerationEnabled;
 				config.PreserveDrawingBuffer = c.PreserveDrawingBuffer;
 				config.ForceColorProfile = c.ForceColorProfile;
+                config.SavesBrowserLog = c.SavesBrowserLog;
 
 				return config;
 			}
@@ -268,6 +269,7 @@ namespace ElectronicObserver.Window
 			c.HardwareAccelerationEnabled = config.HardwareAccelerationEnabled;
 			c.PreserveDrawingBuffer = config.PreserveDrawingBuffer;
 			c.ForceColorProfile = config.ForceColorProfile;
+            c.SavesBrowserLog = config.SavesBrowserLog;
 
 			// volume
 			if (Utility.Configuration.Config.BGMPlayer.SyncBrowserMute)
@@ -478,6 +480,17 @@ namespace ElectronicObserver.Window
 			return "Browser";
 		}
 
+
+		public void SendMouseEvent(string type, double x, double y)
+		{
+			Browser.AsyncRemoteRun(() => Browser.Proxy.SendMouseEvent(type, x, y));
+		}
+
+		public byte[] TakeScreenShotAsPngBytes()
+		{
+			return Browser.RemoteRun(() => Browser.Proxy.TakeScreenShotAsPngBytes(), new byte[] { });
+		}
+		
 
 		#region 呪文
 
