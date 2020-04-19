@@ -110,8 +110,8 @@ namespace ElectronicObserver.Data
 					return "SSホロ'";
 				case 6:
 					return "SSホロ+";
-                case 7:
-                    return "SS++";
+				case 7:
+					return "SS++";
 				default:
 					return "不明";
 			}
@@ -138,8 +138,8 @@ namespace ElectronicObserver.Data
 					return 6;
 				case 6:
 					return 7;
-                case 7:
-                    return 8;
+				case 7:
+					return 8;
 				default:
 					return 0;
 			}
@@ -421,6 +421,8 @@ namespace ElectronicObserver.Data
 					return "船団護衛成功";
 				case 9:
 					return "揚陸地点";
+				case 10:
+					return "泊地";
 				default:
 					return "不明";
 			}
@@ -768,13 +770,15 @@ namespace ElectronicObserver.Data
 					return "Nelson Touch";
 				case DayAttackKind.SpecialNagato:
 					return "一斉射かッ…胸が熱いな！";
-                case DayAttackKind.SpecialMutsu:
-                    return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
-                case DayAttackKind.ZuiunMultiAngle:
-                    return "瑞雲立体攻撃";
-                case DayAttackKind.SeaAirMultiAngle:
-                    return "海空立体攻撃";
-                case DayAttackKind.Shelling:
+				case DayAttackKind.SpecialMutsu:
+					return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
+				case DayAttackKind.SpecialColorado:
+					return "Colorado Touch";
+				case DayAttackKind.ZuiunMultiAngle:
+					return "瑞雲立体攻撃";
+				case DayAttackKind.SeaAirMultiAngle:
+					return "海空立体攻撃";
+				case DayAttackKind.Shelling:
 					return "砲撃";
 				case DayAttackKind.AirAttack:
 					return "空撃";
@@ -829,9 +833,11 @@ namespace ElectronicObserver.Data
 					return "Nelson Touch";
 				case NightAttackKind.SpecialNagato:
 					return "一斉射かッ…胸が熱いな！";
-                case NightAttackKind.SpecialMutsu:
-                    return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
-                case NightAttackKind.Shelling:
+				case NightAttackKind.SpecialMutsu:
+					return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
+				case NightAttackKind.SpecialColorado:
+					return "Colorado Touch";
+				case NightAttackKind.Shelling:
 					return "砲撃";
 				case NightAttackKind.AirAttack:
 					return "空撃";
@@ -853,7 +859,7 @@ namespace ElectronicObserver.Data
 					return "揚陸攻撃(特大発戦車)";
 				default:
 					return "不明(" + (int)id + ")";
-            }
+			}
 		}
 
 
@@ -936,6 +942,12 @@ namespace ElectronicObserver.Data
 					return "Fletcher砲改x2/GFCS<Johnston>";
 				case 37:
 					return "Fletcher砲改x2<Johnston>";
+				case 39:
+					return "Atlanta砲+GFCS/Atlanta砲<Atlanta>";
+				case 40:
+					return "Atlanta砲x2/GFCS<Atlanta>";
+				case 41:
+					return "Atlanta砲x2<Atlanta>";
 				default:
 					return "不明(" + id + ")";
 			}
