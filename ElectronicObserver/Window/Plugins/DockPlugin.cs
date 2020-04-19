@@ -9,10 +9,7 @@ namespace ElectronicObserver.Window.Plugins
 {
 	public abstract class DockPlugin : IPluginHost
 	{
-        public virtual PluginType PluginType
-		{
-			get { return Plugins.PluginType.DockContent; }
-		}
+		public virtual PluginType PluginType => PluginType.DockContent;
 
 		public abstract string MenuTitle { get; }
 
@@ -26,19 +23,13 @@ namespace ElectronicObserver.Window.Plugins
 			return null;
 		}
 
-		public virtual string Version
-		{
-			get { return "1.0.0.0"; }
-		}
+		public virtual string Version => "1.0.0.0";
 
-		public virtual bool RunService( FormMain main )
+		public virtual bool RunService(FormMain main)
 		{
 			return false;
 		}
 
-		public virtual System.Drawing.Image MenuIcon
-		{
-			get { return null; }
-		}
+		public virtual System.Drawing.Image MenuIcon => null;
 	}
 }

@@ -9,10 +9,7 @@ namespace ElectronicObserver.Window.Plugins
 {
 	public abstract class ServerPlugin : IPluginHost
 	{
-        public virtual PluginType PluginType
-		{
-			get { return PluginType.Service; }
-		}
+		public virtual PluginType PluginType => PluginType.Service;
 
 		public abstract string MenuTitle { get; }
 
@@ -26,16 +23,10 @@ namespace ElectronicObserver.Window.Plugins
 			return null;
 		}
 
-		public virtual string Version
-		{
-			get { return "1.0.0.0"; }
-		}
+		public virtual string Version => "1.0.0.0";
 
-		public abstract bool RunService( FormMain main );
+		public abstract bool RunService(FormMain main);
 
-		public virtual System.Drawing.Image MenuIcon
-		{
-			get { return null; }
-		}
+		public virtual System.Drawing.Image MenuIcon => null;
 	}
 }

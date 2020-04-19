@@ -112,7 +112,7 @@ namespace ElectronicObserver.Data
 		/// <summary>
 		/// 図鑑説明
 		/// </summary>
-		public string Message => ((string)RawData.api_info).Replace("<br>", "\r\n");
+		public string Message => RawData.api_info() ? ((string)RawData.api_info).Replace("<br>", "\r\n") : "";
 
 
 		/// <summary>
@@ -333,7 +333,7 @@ namespace ElectronicObserver.Data
 		public bool IsAirRadar => IsRadar && AA >= 2;
 
 		/// <summary> 水上電探かどうか </summary>
-		public bool IsSurfaceRadar => IsRadar && Accuracy >= 3;
+		public bool IsSurfaceRadar => IsRadar && LOS >= 5;
 
 
 		/// <summary> ソナーかどうか </summary>
@@ -353,7 +353,11 @@ namespace ElectronicObserver.Data
 			EquipmentID == 258 ||       // 夜間作戦航空要員
 			EquipmentID == 259;         // 夜間作戦航空要員+熟練甲板員
 
-
+		/// <summary> 高高度局戦かどうか </summary>
+		public bool IsHightAltitudeFighter =>
+			EquipmentID == 350 ||	// Me163B
+			EquipmentID == 351 ||	// 試製 秋水
+			EquipmentID == 352;		// 秋水
 
 
 

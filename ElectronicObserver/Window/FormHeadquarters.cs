@@ -471,7 +471,7 @@ namespace ElectronicObserver.Window
 			var itemID = Utility.Configuration.Config.FormHeadquarters.DisplayUseItemID;
 			var item = db.UseItems[itemID];
 			var itemMaster = db.MasterUseItems[itemID];
-			string tail = "\r\n(設定から変更可能)";
+			string tail = "\r\n(設定からアイテム変更可能)\r\n(右クリックで全アイテム表示)";
 
 
 
@@ -492,6 +492,14 @@ namespace ElectronicObserver.Window
 						$"お米: {db.UseItems[85]?.Count ?? 0}\r\n梅干: {db.UseItems[86]?.Count ?? 0}\r\n海苔: {db.UseItems[87]?.Count ?? 0}\r\nお茶: {db.UseItems[88]?.Count ?? 0}\r\n{tail}");
 					break;
 
+				// '19 autumn event special mode
+				case "秋刀魚":
+				case "鰯":
+					DisplayUseItem.Text = (item?.Count ?? 0).ToString();
+					ToolTipInfo.SetToolTip(DisplayUseItem,
+						$"秋刀魚: {db.UseItems[68]?.Count ?? 0}\r\n鰯: {db.UseItems[93]?.Count ?? 0}\r\n{tail}");
+					break;
+
 				default:
 					DisplayUseItem.Text = (item?.Count ?? 0).ToString();
 					ToolTipInfo.SetToolTip(DisplayUseItem,
@@ -501,7 +509,22 @@ namespace ElectronicObserver.Window
 			
 		}
 
-		private int RealShipCount
+        private void DisplayUseItem_MouseClick(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Right)
+            {
+                var db = KCDatabase.Instance;
+                var sb = new StringBuilder();
+                foreach (var item in db.UseItems.Values)
+                {
+                    sb.Append(item.MasterUseItem.Name).Append(" x ").Append(item.Count).AppendLine();
+                }
+
+                MessageBox.Show(sb.ToString(), "保有アイテム一覧", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private int RealShipCount
 		{
 			get
 			{
@@ -530,6 +553,6 @@ namespace ElectronicObserver.Window
 		}
 
 
-	}
+    }
 
 }

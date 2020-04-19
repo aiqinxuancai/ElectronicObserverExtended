@@ -710,12 +710,13 @@ namespace ElectronicObserver.Window
 					compass.MapInfo.EventDifficulty > 0 ? " [" + Constants.GetDifficulty(compass.MapInfo.EventDifficulty) + "]" : "");
 				{
 					var mapinfo = compass.MapInfo;
+					var sb = new StringBuilder();
 
 					if (mapinfo.RequiredDefeatedCount != -1 && mapinfo.CurrentDefeatedCount < mapinfo.RequiredDefeatedCount)
 					{
-						ToolTipInfo.SetToolTip(TextMapArea, string.Format("{0}撃破: {1} / {2} 回",
+						sb.AppendFormat("{0}撃破: {1} / {2} 回\r\n",
 							mapinfo.CurrentGaugeIndex > 0 ? $"#{mapinfo.CurrentGaugeIndex} " : "",
-							mapinfo.CurrentDefeatedCount, mapinfo.RequiredDefeatedCount));
+							mapinfo.CurrentDefeatedCount, mapinfo.RequiredDefeatedCount);
 
 					}
 					else if (mapinfo.MapHPMax > 0)
@@ -723,15 +724,18 @@ namespace ElectronicObserver.Window
 						int current = compass.MapHPCurrent > 0 ? compass.MapHPCurrent : mapinfo.MapHPCurrent;
 						int max = compass.MapHPMax > 0 ? compass.MapHPMax : mapinfo.MapHPMax;
 
-						ToolTipInfo.SetToolTip(TextMapArea, string.Format("{0}{1}: {2} / {3}",
+						sb.AppendFormat("{0}{1}: {2} / {3}\r\n",
 							mapinfo.CurrentGaugeIndex > 0 ? $"#{mapinfo.CurrentGaugeIndex} " : "",
-							mapinfo.GaugeType == 3 ? "TP" : "HP", current, max));
+							mapinfo.GaugeType == 3 ? "TP" : "HP", current, max);
+					}
 
-					}
-					else
+
+					foreach (var pair in KCDatabase.Instance.Battle.SpecialAttackCount)
 					{
-						ToolTipInfo.SetToolTip(TextMapArea, null);
+						sb.AppendLine($"{Constants.GetDayAttackKind((DayAttackKind)pair.Key)} : 発動済み");
 					}
+
+					ToolTipInfo.SetToolTip(TextMapArea, sb.Length > 0 ? sb.ToString() : null);
 				}
 
 
@@ -936,6 +940,10 @@ namespace ElectronicObserver.Window
 
 						case 9:     //揚陸地点
 							TextEventDetail.Text = "";
+							break;
+
+						case 10:    // 泊地
+							TextEventDetail.Text = compass.CanEmergencyAnchorageRepair ? "修理可能" : "";
 							break;
 
 						default:

@@ -42,6 +42,8 @@ namespace BrowserLib
 		{
 			Server = new ServiceHost(instance, new Uri[] { new Uri(listenUrl) });
 			Binding.ReceiveTimeout = TimeSpan.MaxValue;
+			Binding.MaxBufferSize = int.MaxValue;
+			Binding.MaxReceivedMessageSize = int.MaxValue;
 			Server.AddServiceEndpoint(type, Binding, serviceAddress);
 			Server.Open();
 		}
@@ -81,6 +83,24 @@ namespace BrowserLib
 		}
 
 		/// <summary>
+		/// 閉じる(非同期)
+		/// </summary>
+		public async Task CloseAsync(object instance)
+		{
+			if (!Closed)
+			{
+				if (Proxy != null)
+				{
+					((IClientChannel)Proxy).Abort();
+					Proxy = null;
+				}
+				await Task.Factory.FromAsync(Server.BeginClose(_ => { }, instance), _ => { });
+				
+				Closed = true;
+			}
+		}
+
+		/// <summary>
 		/// 非同期でactionを実行。例外が発生したらFaultイベントが発生するので、例外が出ることはない
 		/// </summary>
 		public async void AsyncRemoteRun(Action action)
@@ -114,6 +134,23 @@ namespace BrowserLib
 			{
 				Faulted(ex);
 			}
+		}
+
+		public T RemoteRun<T>(Func<T> func, T defaultValue)
+		{
+			try
+			{
+				if (Proxy == null) return defaultValue;
+				return func();
+			}
+			catch (CommunicationException cex)
+			{
+				((IClientChannel)Proxy).Abort();
+				Proxy = null;
+				Connect(ServerUrl);
+			}
+
+			return defaultValue;
 		}
 	}
 

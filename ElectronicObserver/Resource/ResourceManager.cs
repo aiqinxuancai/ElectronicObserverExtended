@@ -91,6 +91,7 @@ namespace ElectronicObserver.Resource
 			FormAntiAirDefense,
 			FormFleetImageGenerator,
 			FormExpChecker,
+            FormExpeditionCheck,
 			FleetNoShip,
 			FleetDocking,
 			FleetSortieDamaged,
@@ -325,8 +326,9 @@ namespace ElectronicObserver.Resource
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/AntiAirDefense.png", "Form_AntiAirDefense");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/FleetImageGenerator.png", "Form_FleetImageGenerator");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/ExpChecker.png", "Form_ExpChecker");
+                LoadImageFromArchive(Icons, archive, mstpath + @"Form/ExpeditionCheck.png", "Form_ExpeditionCheck");
 
-				LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/NoShip.png", "Fleet_NoShip");
+                LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/NoShip.png", "Fleet_NoShip");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/Docking.png", "Fleet_Docking");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/SortieDamaged.png", "Fleet_SortieDamaged");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/Sortie.png", "Fleet_Sortie");
@@ -618,7 +620,7 @@ namespace ElectronicObserver.Resource
 		/// <returns>コピーに成功すれば true 。それ以外は false 。</returns>
 		public static bool CopyFromArchive(string source, string destination, bool checkexist = true, bool convertEncoding = false)
 		{
-			return CopyFromArchive(AssetFilePath, source, destination, checkexist);
+			return CopyFromArchive(AssetFilePath, source, destination, checkexist, convertEncoding);
 		}
 
 

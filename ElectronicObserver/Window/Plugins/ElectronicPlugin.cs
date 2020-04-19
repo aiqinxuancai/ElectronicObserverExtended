@@ -7,69 +7,51 @@ using System.Windows.Forms;
 
 namespace ElectronicObserver.Window.Plugins
 {
-    [Serializable]
-    public abstract class ElectronicPlugin
-    {
-        [Obsolete]
-        public bool Active
-        {
-            get;
-            set;
-        }
+	[Serializable]
+	public abstract class ElectronicPlugin
+	{
+		[Obsolete] public bool Active { get; set; }
 
-        public virtual Image MenuIcon
-        {
-            get
-            {
-                return null;
-            }
-        }
-        public abstract string PluginName
-        {
-            get;
-        }
-        public virtual string Version
-        {
-            get
-            {
-                return "1.0.0.0";
-            }
-        }
+		public virtual Image MenuIcon => null;
 
-        public virtual bool StartPlugin(FormMain main)
-        {
-            return true;
-        }
+		public abstract string PluginName { get; }
 
-        public virtual bool StopPlugin()
-        {
-            return true;
-        }
+		public virtual string Version => "1.0.0.0";
 
-        public virtual PluginSettingControl GetSettings()
-        {
-            return null;
-        }
-    }
+		public virtual bool StartPlugin(FormMain main)
+		{
+			return true;
+		}
 
-    public interface IDialogPlugin
-    {
-        string ToolMenuTitle { get; }
-        Form GetToolWindow();
-    }
+		public virtual bool StopPlugin()
+		{
+			return true;
+		}
 
-    public interface IDockPlugin
-    {
-        string ViewMenuTitle { get; }
-        Form GetDockWindow();
-    }
+		public virtual PluginSettingControl GetSettings()
+		{
+			return null;
+		}
+	}
 
-    public interface IObserverPlugin
-    {
-        bool OnBeforeRequest(Fiddler.Session oSession);
+	public interface IDialogPlugin
+	{
+		string ToolMenuTitle { get; }
+		Form GetToolWindow();
+	}
 
-        bool OnBeforeResponse(Fiddler.Session oSession);
+	public interface IDockPlugin
+	{
+		string ViewMenuTitle { get; }
+		Form GetDockWindow();
+	}
 
-        bool OnAfterSessionComplete(Fiddler.Session oSession);
-    }
+	public interface IObserverPlugin
+	{
+		bool OnBeforeRequest(Fiddler.Session oSession);
+
+		bool OnBeforeResponse(Fiddler.Session oSession);
+
+		bool OnAfterSessionComplete(Fiddler.Session oSession);
+	}
 }

@@ -213,13 +213,14 @@ namespace ElectronicObserver.Utility.Data
 		/// 基地航空隊の制空戦力を求めます。
 		/// </summary>
 		/// <param name="aircorps">対象の基地航空隊。</param>
-		public static int GetAirSuperiority(BaseAirCorpsData aircorps, bool isAircraftLevelMaximum = false)
+		public static int GetAirSuperiority(BaseAirCorpsData aircorps, bool isAircraftLevelMaximum = false, bool isHighAltitude = false)
 		{
 			if (aircorps == null)
 				return 0;
 
 			int air = 0;
-			double rate = 1.0;
+			double reconBonus = 1.0;
+			int highAltitudeFigherCount = 0;
 
 			foreach (var sq in aircorps.Squadrons.Values)
 			{
@@ -233,15 +234,25 @@ namespace ElectronicObserver.Utility.Data
 				switch (aircorps.ActionKind)
 				{
 					case 1:     // 出撃
-						rate = Math.Max(rate, GetAirSuperioritySortieReconBonus(sq.EquipmentID));
+						reconBonus = Math.Max(reconBonus, GetAirSuperioritySortieReconBonus(sq.EquipmentID));
 						break;
 					case 2:     // 防空
-						rate = Math.Max(rate, GetAirSuperiorityAirDefenseReconBonus(sq.EquipmentID));
+						reconBonus = Math.Max(reconBonus, GetAirSuperiorityAirDefenseReconBonus(sq.EquipmentID));
 						break;
+				}
+				if (sq.EquipmentInstanceMaster.IsHightAltitudeFighter)
+				{
+					highAltitudeFigherCount++;
 				}
 			}
 
-			return (int)(air * rate);
+			double highAltitudeBonus = 1.0;
+			if (isHighAltitude)
+			{
+				highAltitudeBonus = Math.Min(0.5 + 0.3 * highAltitudeFigherCount, 1.2);
+			}
+
+			return (int)(air * reconBonus * highAltitudeBonus);
 		}
 
 
@@ -692,6 +703,8 @@ namespace ElectronicObserver.Utility.Data
 			int rocketCount = 0;
 			int attackerCount = 0;
 			int bomberCount = 0;
+			int suisei634Count = 0;
+			int zuiunCount = 0;
 
 			if (slot == null)
 				return DayAttackKind.Unknown;
@@ -716,6 +729,8 @@ namespace ElectronicObserver.Utility.Data
 
 					case EquipmentTypes.CarrierBasedBomber:
 						bomberCount++;
+						if (eq.Name.Contains("六三四空"))
+							suisei634Count++;
 						break;
 
 					case EquipmentTypes.CarrierBasedTorpedo:
@@ -725,6 +740,8 @@ namespace ElectronicObserver.Utility.Data
 					case EquipmentTypes.SeaplaneRecon:
 					case EquipmentTypes.SeaplaneBomber:
 						reconCount++;
+						if (eq.Name.Contains("瑞雲"))
+							zuiunCount++;
 						break;
 
 					case EquipmentTypes.RadarSmall:
@@ -743,8 +760,20 @@ namespace ElectronicObserver.Utility.Data
 				}
 			}
 
+			ShipDataMaster attacker = KCDatabase.Instance.MasterShips[attackerShipID];
+			ShipDataMaster defender = KCDatabase.Instance.MasterShips[defenderShipID];
+
 			if (includeSpecialAttack)
 			{
+				if (attackerShipID == 553 || attackerShipID == 554) // 伊勢改二・日向改二
+				{
+					if (mainGunCount >= 1 && zuiunCount >= 2)
+						return DayAttackKind.ZuiunMultiAngle;
+
+					else if (mainGunCount >= 1 && suisei634Count >= 2)
+						return DayAttackKind.SeaAirMultiAngle;
+				}
+
 				if (reconCount > 0)
 				{
 					if (mainGunCount == 2 && apShellCount == 1)
@@ -767,8 +796,6 @@ namespace ElectronicObserver.Utility.Data
 					return DayAttackKind.CutinAirAttack;
 			}
 
-			ShipDataMaster attacker = KCDatabase.Instance.MasterShips[attackerShipID];
-			ShipDataMaster defender = KCDatabase.Instance.MasterShips[defenderShipID];
 
 			if (attacker != null)
 			{
@@ -895,6 +922,7 @@ namespace ElectronicObserver.Utility.Data
 			int nightFighterCount = 0;
 			int nightAttackerCount = 0;
 			int swordfishCount = 0;
+			int nightCapableBomberCount = 0;
 			int nightBomberCount = 0;
 			int nightPersonnelCount = 0;
 			int surfaceRadarCount = 0;
@@ -945,6 +973,8 @@ namespace ElectronicObserver.Utility.Data
 					// (夜間)爆撃機
 					case EquipmentTypes.CarrierBasedBomber:
 						if (eq.EquipmentID == 154)      // 零戦62型(爆戦/岩井隊)
+							nightCapableBomberCount++;
+						else if (eq.EquipmentID == 320) // 彗星一二型(三一号光電管爆弾搭載機)
 							nightBomberCount++;
 						break;
 
@@ -988,7 +1018,7 @@ namespace ElectronicObserver.Utility.Data
 
 			}
 
-			if (attackerShipID == 545)      // Saratoga Mk.II
+			if (attackerShipID == 545 || attackerShipID == 599)      // Saratoga Mk.II/赤城改二戊
 				nightPersonnelCount++;
 
 
@@ -1023,12 +1053,13 @@ namespace ElectronicObserver.Utility.Data
 					(subGunCount >= 2 && torpedoCount <= 1))
 					return NightAttackKind.DoubleShelling;
 
-
 				// 空母カットイン
-				if (nightPersonnelCount > 0 && nightFighterCount > 0)
+				if (nightPersonnelCount > 0)
 				{
-					if (nightAttackerCount > 0 ||
-						(nightFighterCount + swordfishCount + nightBomberCount) >= 3)
+					if (nightFighterCount > 0 &&
+						(nightAttackerCount > 0 || (nightFighterCount + swordfishCount + nightCapableBomberCount) >= 3))
+						return NightAttackKind.CutinAirAttack;
+					else if (nightBomberCount > 0 && (nightFighterCount + nightAttackerCount > 0))
 						return NightAttackKind.CutinAirAttack;
 				}
 
@@ -1207,6 +1238,8 @@ namespace ElectronicObserver.Utility.Data
 			int highangle_america = 0;
 			int highangle_america_gfcs = 0;
 			int radar_gfcs = 0;
+			int highangle_atlanta = 0;
+			int highangle_atlanta_gfcs = 0;
 
 			var slotmaster = slot.Select(id => KCDatabase.Instance.MasterEquipments[id]).Where(eq => eq != null).ToArray();
 
@@ -1220,15 +1253,25 @@ namespace ElectronicObserver.Utility.Data
 					if (eq.IsHighAngleGunWithAADirector)
 						highangle_director++;
 
-					if (eq.EquipmentID == 275)   // 10cm連装高角砲改+増設機銃
-						highangle_musashi++;
-
-					if (eq.EquipmentID == 313)       // 5inch単装砲 Mk.30改
-						highangle_america++;
-
-					if (eq.EquipmentID == 308)       // 5inch単装砲 Mk.30改+GFCS Mk.37
-						highangle_america_gfcs++;
-
+					switch(eq.EquipmentID)
+					{
+						case 275:   // 10cm連装高角砲改+増設機銃
+							highangle_musashi++;
+							break;
+						case 313:   // 5inch単装砲 Mk.30改
+							highangle_america++;
+							break;
+						case 308:   // 5inch単装砲 Mk.30改+GFCS Mk.37
+							highangle_america_gfcs++;
+							break;
+						case 362:   // 5inch連装両用砲(集中配備)
+							highangle_atlanta++;
+							break;
+						case 363:   // GFCS Mk.37+5inch連装両用砲(集中配備)
+							highangle_atlanta_gfcs++;
+							break;
+					}
+					
 				}
 				else if (eq.CategoryType == EquipmentTypes.AADirector)
 				{
@@ -1374,6 +1417,7 @@ namespace ElectronicObserver.Utility.Data
 				case 82:    // 伊勢改
 				case 88:    // 日向改
 				case 553:   // 伊勢改二
+				case 554:   // 日向改二
 					if (aarocket_mod >= 1 && aaradar >= 1)
 					{
 						if (aashell >= 1)
@@ -1402,6 +1446,7 @@ namespace ElectronicObserver.Utility.Data
 					break;
 
 				case 149:   // 金剛改二
+				case 591:   // 金剛改二丙
 				case 150:   // 比叡改二
 				case 151:   // 榛名改二
 				case 152:   // 霧島改二
@@ -1409,6 +1454,10 @@ namespace ElectronicObserver.Utility.Data
 				case 394:   // Jervis改
 				case 571:   // Nelson
 				case 576:   // Nelson改
+				case 439:   // Warspite
+				case 364:   // Warspite改
+				case 515:   // Ark Royal
+				case 393:   // Ark Royal改
 					if (aarocket_english >= 2)
 						return 32;
 					if (aagun_pompom >= 1 && (maingunl_fcr >= 1 || aarocket_english >= 1))
@@ -1424,6 +1473,8 @@ namespace ElectronicObserver.Utility.Data
 
 				case 562:   // Johnston
 				case 689:   // Johnston改
+				case 596:   // Fletcher
+				case 692:   // Fletcher改
 					if (highangle_america_gfcs >= 2)
 						return 34;
 					if (highangle_america_gfcs >= 1 && highangle_america >= 1)
@@ -1436,6 +1487,17 @@ namespace ElectronicObserver.Utility.Data
 					}
 					break;
 
+				case 597:   // Atlanta
+				case 696:   // Atlanta改
+					if (highangle_atlanta_gfcs >= 1 && highangle_atlanta >= 1)
+						return 39;
+					if (highangle_atlanta_gfcs + highangle_atlanta >= 2)
+					{
+						if (radar_gfcs >= 1)
+							return 40;
+						return 41;
+					}
+					break;
 			}
 
 
@@ -1699,6 +1761,9 @@ namespace ElectronicObserver.Utility.Data
 			{ 35, 6 },
 			{ 36, 6 },
 			{ 37, 4 },
+			{ 39, 10 },
+			{ 40, 10 },
+			{ 41, 9 },
 		});
 
 
@@ -1742,6 +1807,9 @@ namespace ElectronicObserver.Utility.Data
 			{ 35, 1.55 },
 			{ 36, 1.55 },
 			{ 37, 1.45 },
+			{ 39, 1.7 },
+			{ 40, 1.7 },
+			{ 41, 1.65 },
 		});
 
 
@@ -2324,6 +2392,19 @@ namespace ElectronicObserver.Utility.Data
 		/// <summary> 一斉射かッ…胸が熱いな！ </summary>
 		SpecialNagato = 101,
 
+		/// <summary> 長門、いい？ いくわよ！ 主砲一斉射ッ！ </summary>
+		SpecialMutsu = 102,
+
+		/// <summary> Colorado Touch </summary>
+		SpecialColorado = 103,
+
+
+		/// <summary> 瑞雲立体攻撃 </summary>
+		ZuiunMultiAngle = 200,
+
+		/// <summary> 海空立体攻撃 </summary>
+		SeaAirMultiAngle = 201,
+
 
 		/// <summary> 砲撃 </summary>
 		Shelling = 1000,
@@ -2401,6 +2482,12 @@ namespace ElectronicObserver.Utility.Data
 
 		/// <summary> 一斉射かッ…胸が熱いな！ </summary>
 		SpecialNagato = 101,
+
+		/// <summary> 長門、いい？ いくわよ！ 主砲一斉射ッ！ </summary>
+		SpecialMutsu = 102,
+
+		/// <summary> Colorado Touch </summary>
+		SpecialColorado = 103,
 
 
 		/// <summary> 砲撃 </summary>

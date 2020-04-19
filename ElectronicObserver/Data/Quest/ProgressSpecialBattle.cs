@@ -34,14 +34,15 @@ namespace ElectronicObserver.Data.Quest
 			// 邪悪
 			var bm = KCDatabase.Instance.Battle;
 
-			if (bm.FirstBattle == null)
+			var fleet = KCDatabase.Instance.Fleet.Fleets.Values.FirstOrDefault(f => f.IsInSortie);
+
+			if (fleet == null)
 			{
-				// 戦闘中ではない - たぶん UI 操作経由のコール?
+				// 出撃中ではない - たぶん UI 操作経由のコール?
 				base.Increment(rank, areaID, isBoss);
 				return;
 			}
 
-			var fleet = bm.FirstBattle.Initial.FriendFleet;
 			var members = fleet.MembersWithoutEscaped;
 			var memberstype = members.Select(s => s?.MasterShip?.ShipType ?? Empty).ToArray();
 
@@ -135,6 +136,15 @@ namespace ElectronicObserver.Data.Quest
 						memberstype.Count(t => t == ShipTypes.Destroyer) == 4;
 					break;
 
+				// |280|月|兵站線確保！海上警備を強化実施せよ！|1-2・1-3・1-4・2-1ボスS勝利各1|要(軽母or軽巡or雷巡or練巡)1/(駆逐or海防)3
+				// |284|季|南西諸島方面「海上警備行動」発令！|1-4・2-1・2-2・2-3ボスS勝利各1|要(軽母or軽巡or雷巡or練巡)1/(駆逐or海防)3
+				case 280:
+				case 284:
+					isAccepted =
+						memberstype.Any(t => t == ShipTypes.LightAircraftCarrier || t == ShipTypes.LightCruiser || t == ShipTypes.TorpedoCruiser || t == ShipTypes.TrainingCruiser) &&
+						memberstype.Count(t => t == ShipTypes.Destroyer || t == ShipTypes.Escort) >= 3;
+					break;
+
 				// |861|季|強行輸送艦隊、抜錨！|1-6終点到達2|要(航空戦艦or補給艦)2
 				case 861:
 					isAccepted =
@@ -158,7 +168,17 @@ namespace ElectronicObserver.Data.Quest
 				case 875:
 					isAccepted =
 						members.Any(s => s?.ShipID == 543) &&
-						members.Any(s => s?.ShipID == 345 || s?.ShipID == 359 || s?.ShipID == 344);
+						members.Any(s => {
+							switch(s?.MasterShip?.NameReading)
+							{
+								case "たかなみ":
+								case "おきなみ":
+								case "あさしも":
+									return s.MasterShip.RemodelTier >= 1;
+								default:
+									return false;
+							}
+						});
 					break;
 
 				// |888|季|新編成「三川艦隊」、鉄底海峡に突入せよ！|5-1・5-3・5-4ボスS勝利各1|要(鳥海or青葉or衣笠or加古or古鷹or天龍or夕張)4
@@ -182,13 +202,15 @@ namespace ElectronicObserver.Data.Quest
 						}) >= 4;
 					break;
 
-				// |893|季|泊地周辺海域の安全確保を徹底せよ！|1-5・7-1・7-2(第一＆第二)ボスS勝利各3|3エリア達成時点で80%
-				case 893:
-					if (GaugeIndex == 1)
-						isAccepted = bm.Compass.Destination == 7;
-					else if (GaugeIndex == 2)
-						isAccepted = bm.Compass.Destination == 15;
-
+				case 872:   // |872|季|戦果拡張任務！「Z作戦」後段作戦|5-5・6-2・6-5・7-2(第二)ボスS勝利各1|要第一艦隊？
+				case 893:   // |893|季|泊地周辺海域の安全確保を徹底せよ！|1-5・7-1・7-2(第一＆第二)ボスS勝利各3|3エリア達成時点で80%
+					if (bm.Compass.MapAreaID == 7 && bm.Compass.MapInfoID == 2)
+					{
+						if (GaugeIndex == 1)
+							isAccepted = bm.Compass.Destination == 7;
+						else if (GaugeIndex == 2)
+							isAccepted = bm.Compass.Destination == 15;
+					}
 					break;
 
 				// |894|季|空母戦力の投入による兵站線戦闘哨戒|1-3・1-4・2-1・2-2・2-3ボスS勝利各1?|要空母系

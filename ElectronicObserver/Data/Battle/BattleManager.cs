@@ -49,7 +49,7 @@ namespace ElectronicObserver.Data.Battle
 			NightDay,                       // 夜昼戦
 			AirBattle,                      // 航空戦
 			AirRaid,                        // 長距離空襲戦
-			Radar,							// レーダー射撃
+			Radar,                          // レーダー射撃
 			Practice,                       // 演習
 			BaseAirRaid,                    // 基地空襲戦
 			BattlePhaseMask = 0xFF,         // 戦闘形態マスク
@@ -141,10 +141,22 @@ namespace ElectronicObserver.Data.Battle
 		public string EnemyAdmiralRank { get; internal set; }
 
 
+		/// <summary>
+		/// 特殊攻撃発動回数
+		/// </summary>
+		public Dictionary<int, int> SpecialAttackCount { get; private set; }
+
+		/// <summary>
+		/// 記録する特殊攻撃
+		/// </summary>
+		private readonly int[] TracedSpecialAttack = new int[] { 100, 101, 102, 103 };
+
+
 
 		public BattleManager()
 		{
 			DroppedItemCount = new Dictionary<int, int>();
+			SpecialAttackCount = new Dictionary<int, int>();
 		}
 
 
@@ -321,6 +333,7 @@ namespace ElectronicObserver.Data.Battle
 					BattleMode = BattleModes.Undefined;
 					DroppedShipCount = DroppedEquipmentCount = 0;
 					DroppedItemCount.Clear();
+					SpecialAttackCount.Clear();
 					break;
 
 				case "api_get_member/slot_item":
@@ -469,6 +482,31 @@ namespace ElectronicObserver.Data.Battle
 
 				RecordManager.Instance.ShipDrop.Add(shipID, itemID, eqID, Compass.MapAreaID, Compass.MapInfoID, Compass.Destination, Compass.MapInfo.EventDifficulty, Compass.EventID == 5, enemyFleetData.FleetID, Result.Rank, KCDatabase.Instance.Admiral.Level);
 			}
+
+
+			void IncrementSpecialAttack(BattleData bd)
+			{
+				if (bd == null)
+					return;
+
+				foreach (var phase in bd.GetPhases())
+				{
+					foreach (var detail in phase.BattleDetails)
+					{
+						int kind = detail.AttackType;
+
+						if (detail.AttackerIndex.IsFriend && TracedSpecialAttack.Contains(kind))
+						{
+							if (SpecialAttackCount.ContainsKey(kind))
+								SpecialAttackCount[kind]++;
+							else
+								SpecialAttackCount.Add(kind, 1);
+						}
+					}
+				}
+			}
+			IncrementSpecialAttack(FirstBattle);
+			IncrementSpecialAttack(SecondBattle);
 
 
 
@@ -713,6 +751,41 @@ namespace ElectronicObserver.Data.Battle
 			return rank;
 		}
 
+
+		/// <summary>
+		/// 敵連合艦隊戦において、夜戦突入時に敵本隊と戦闘可能な戦況かどうか
+		/// </summary>
+		public bool WillNightBattleWithMainFleet()
+		{
+			if (StartsFromDayBattle && IsEnemyCombined)
+			{
+				var initial = BattleDay.Initial;
+				int score = 0;
+				for (int i = 0; i < initial.EnemyInitialHPsEscort.Length; i++)
+				{
+					if (initial.EnemyMembersEscort[i] > 0)
+					{
+						double rate = (double)BattleDay.ResultHPs[BattleIndex.Get(BattleSides.EnemyEscort, i)] / initial.EnemyMaxHPsEscort[i];
+
+						if (rate > 0.5)
+						{
+							score += 10;
+						}
+						else if (rate > 0.25)
+						{
+							score += 7;
+						}
+
+						if (i == 0 && rate > 0)
+						{
+							score += 10;
+						}
+					}
+				}
+				return score < 30;
+			}
+			else return false;          // ? true?
+		}
 
 
 		private void WriteBattleLog()

@@ -99,10 +99,22 @@ namespace ElectronicObserver.Data.Battle.Phase
 						break;
 
 					case 101:
-						// nagato touch
+                    case 102:
+						// nagato/mutsu touch
 						for (int i = 0; i < atk.Defenders.Count; i++)
 						{
 							var comboatk = new BattleIndex(atk.Attacker.Side, i / 2);       // #1, #1, #2
+							BattleDetails.Add(new BattleNightDetail(Battle, comboatk, atk.Defenders[i].Defender, new[] { atk.Defenders[i].RawDamage }, new[] { atk.Defenders[i].CriticalFlag }, atk.AttackType, atk.EquipmentIDs, atk.NightAirAttackFlag, hps[atk.Defenders[i].Defender]));
+							AddDamage(hps, atk.Defenders[i].Defender, atk.Defenders[i].Damage);
+							damages[comboatk] += atk.Defenders[i].Damage;
+						}
+						break;
+
+					case 103:
+						// colorado touch
+						for (int i = 0; i < atk.Defenders.Count; i++)
+						{
+							var comboatk = new BattleIndex(atk.Attacker.Side, i);       // #1, #2, #3
 							BattleDetails.Add(new BattleNightDetail(Battle, comboatk, atk.Defenders[i].Defender, new[] { atk.Defenders[i].RawDamage }, new[] { atk.Defenders[i].CriticalFlag }, atk.AttackType, atk.EquipmentIDs, atk.NightAirAttackFlag, hps[atk.Defenders[i].Defender]));
 							AddDamage(hps, atk.Defenders[i].Defender, atk.Defenders[i].Damage);
 							damages[comboatk] += atk.Defenders[i].Damage;

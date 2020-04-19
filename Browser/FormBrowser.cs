@@ -223,7 +223,7 @@ namespace Browser
 				CachePath = BrowserCachePath,
 				Locale = "ja",
 				AcceptLanguageList = "ja,en-US,en",        // todo: いる？
-				LogSeverity = LogSeverity.Error,
+				LogSeverity = Configuration.SavesBrowserLog ? LogSeverity.Error : LogSeverity.Disable,
 				LogFile = "BrowserLog.log",
 			};
 
@@ -234,7 +234,7 @@ namespace Browser
 			if (Configuration.ForceColorProfile)
 				settings.CefCommandLineArgs.Add("force-color-profile", "srgb");
 			CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
-			Cef.Initialize(settings, false, null);
+			Cef.Initialize(settings, false, (IBrowserProcessHandler)null);
 
 
 			var requestHandler = new RequestHandler(pixiSettingEnabled: Configuration.PreserveDrawingBuffer);
@@ -250,6 +250,7 @@ namespace Browser
 				DragHandler = new DragHandler(),
 			};
 			Browser.LoadingStateChanged += Browser_LoadingStateChanged;
+			Browser.IsBrowserInitializedChanged += Browser_IsBrowserInitializedChanged;
 			SizeAdjuster.Controls.Add(Browser);
 		}
 
@@ -288,7 +289,7 @@ namespace Browser
 			ToolMenu_Other_AppliesStyleSheet.Checked = Configuration.AppliesStyleSheet;
 			ToolMenu.Dock = (DockStyle)Configuration.ToolMenuDockStyle;
 			ToolMenu.Visible = Configuration.IsToolMenuVisible;
-
+			ToolMenu_Other_ClearCache.Visible = conf.EnableDebugMenu;
 		}
 
 		private void ConfigurationUpdated()
@@ -486,6 +487,23 @@ namespace Browser
 
 		}
 
+
+
+		// タイミングによっては(特に起動時)、ブラウザの初期化が完了する前に Navigate() が呼ばれることがある
+		// その場合ロードに失敗してブラウザが白画面でスタートしてしまう（手動でログインページを開けば続行は可能だが）
+		// 応急処置として失敗したとき後で再試行するようにしてみる
+		private string navigateCache = null;
+		private void Browser_IsBrowserInitializedChanged(object sender, IsBrowserInitializedChangedEventArgs e)
+		{
+			if (IsBrowserInitialized && navigateCache != null)
+			{
+				// ロードが完了したので再試行
+				string url = navigateCache;            // 非同期コールするのでコピーを取っておく必要がある
+				BeginInvoke((Action)(() => Navigate(url)));
+				navigateCache = null;
+			}
+		}
+
 		/// <summary>
 		/// 指定した URL のページを開きます。
 		/// </summary>
@@ -494,6 +512,12 @@ namespace Browser
 			if (url != Configuration.LogInPageURL || !Configuration.AppliesStyleSheet)
 				StyleSheetApplied = false;
 			Browser.Load(url);
+
+			if (!IsBrowserInitialized)
+			{
+				// 大方ロードできないのであとで再試行する
+				navigateCache = url;
+			}
 		}
 
 		/// <summary>
@@ -763,17 +787,6 @@ namespace Browser
 			BrowserHost.AsyncRemoteRun(() => BrowserHost.Proxy.SetProxyCompleted());
 		}
 
-
-		/// <summary>
-		/// キャッシュを削除します。
-		/// </summary>
-		private bool ClearCache(long timeoutMilliseconds = 5000)
-		{
-			// note: Cef が起動している状態では削除できない X(
-			// 今のところ手動でやってもらうことにする
-
-			return true;
-		}
 
 
 		public void SetIconResource(byte[] canvas)
@@ -1195,6 +1208,14 @@ namespace Browser
 			Browser.GetBrowser().ShowDevTools();
 		}
 
+		private void ToolMenu_Other_ClearCache_Click(object sender, EventArgs e)
+		{
+			if (MessageBox.Show("キャッシュをクリアするため、ブラウザを再起動します。\r\nよろしいですか？\r\n※環境によっては本ツールが終了する場合があります。その場合は再起動してください。", "ブラウザ再起動確認",
+				MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+			{
+				BrowserHost.AsyncRemoteRun(() => BrowserHost.Proxy.ClearCache());
+			}
+		}
 
 		protected override void WndProc(ref Message m)
 		{
@@ -1205,7 +1226,35 @@ namespace Browser
 
 			base.WndProc(ref m);
 		}
+		
+		
+		public void SendMouseEvent(string type, double x, double y)
+		{
+			var mouseEvent = new MouseEvent((int) (Browser.Width * x), (int) (Browser.Height * y), CefEventFlags.None);
 
+			switch (type)
+			{
+				case "down":
+					Browser.GetBrowserHost().SendMouseClickEvent(mouseEvent, MouseButtonType.Left, false, 1);
+					return;
+				case "up":
+					Browser.GetBrowserHost().SendMouseClickEvent(mouseEvent, MouseButtonType.Left, true, 1);
+					break;
+				case "move":
+					Browser.GetBrowserHost().SendMouseMoveEvent(mouseEvent, false);
+					break;
+			}
+		}
+
+		public byte[] TakeScreenShotAsPngBytes()
+		{
+			var screenShot = Task.Run(TakeScreenShot);
+			using (var stream = new MemoryStream())
+			{
+				screenShot.Result.Save(stream, ImageFormat.Png);
+				return stream.ToArray();
+			}
+		}
 
 		#region 呪文
 
@@ -1224,9 +1273,8 @@ namespace Browser
 
 
 
+
 		#endregion
-
-
 	}
 
 

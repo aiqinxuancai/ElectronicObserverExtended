@@ -34,6 +34,8 @@
 			this.ButtonClose = new System.Windows.Forms.Button();
 			this.TextInformation = new System.Windows.Forms.LinkLabel();
 			this.label2 = new System.Windows.Forms.Label();
+			this.labelExtended = new System.Windows.Forms.Label();
+			this.TextExtended = new System.Windows.Forms.LinkLabel();
 			this.SuspendLayout();
 			// 
 			// TextVersion
@@ -99,6 +101,26 @@
 			this.label2.TabIndex = 4;
 			this.label2.Text = "配布元(不具合報告・連絡はこちらへ)：";
 			// 
+			// labelExtended
+			// 
+			this.labelExtended.AutoSize = true;
+			this.labelExtended.Location = new System.Drawing.Point(12, 93);
+			this.labelExtended.Name = "labelExtended";
+			this.labelExtended.Size = new System.Drawing.Size(79, 15);
+			this.labelExtended.TabIndex = 6;
+			this.labelExtended.Text = "拡張版開発：";
+			// 
+			// TextExtended
+			// 
+			this.TextExtended.AutoSize = true;
+			this.TextExtended.Location = new System.Drawing.Point(97, 93);
+			this.TextExtended.Name = "TextExtended";
+			this.TextExtended.Size = new System.Drawing.Size(154, 15);
+			this.TextExtended.TabIndex = 7;
+			this.TextExtended.TabStop = true;
+			this.TextExtended.Text = "中国ホワイト（アルバム）学院";
+			this.TextExtended.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.TextExtended_LinkClicked);
+			// 
 			// DialogVersion
 			// 
 			this.AcceptButton = this.ButtonClose;
@@ -110,6 +132,8 @@
 			this.Controls.Add(this.TextAuthor);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.TextVersion);
+			this.Controls.Add(this.labelExtended);
+			this.Controls.Add(this.TextExtended);
 			this.Font = new System.Drawing.Font("Meiryo UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -122,7 +146,6 @@
 			this.Load += new System.EventHandler(this.DialogVersion_Load);
 			this.ResumeLayout(false);
 			this.PerformLayout();
-
 		}
 
 		#endregion
@@ -133,5 +156,7 @@
 		private System.Windows.Forms.Button ButtonClose;
 		private System.Windows.Forms.LinkLabel TextInformation;
 		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Label labelExtended;
+		private System.Windows.Forms.LinkLabel TextExtended;
 	}
 }

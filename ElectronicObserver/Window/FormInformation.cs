@@ -45,7 +45,6 @@ namespace ElectronicObserver.Window
 			o["api_port/port"].ResponseReceived += Updated;
 			o["api_req_member/get_practice_enemyinfo"].ResponseReceived += Updated;
 			o["api_get_member/picture_book"].ResponseReceived += Updated;
-			o["api_req_kousyou/createitem"].ResponseReceived += Updated;
 			o["api_get_member/mapinfo"].ResponseReceived += Updated;
 			o["api_req_mission/result"].ResponseReceived += Updated;
 			o["api_req_practice/battle_result"].ResponseReceived += Updated;
@@ -56,6 +55,7 @@ namespace ElectronicObserver.Window
 			o["api_req_map/next"].ResponseReceived += Updated;
 			o["api_req_practice/battle"].ResponseReceived += Updated;
 			o["api_get_member/sortie_conditions"].ResponseReceived += Updated;
+			o["api_req_mission/start"].RequestReceived += Updated;
 
 			Utility.Configuration.Instance.ConfigurationChanged += ConfigurationChanged;
 		}
@@ -106,10 +106,6 @@ namespace ElectronicObserver.Window
 					TextInformation.Text = GetAlbumInfo(data);
 					break;
 
-				case "api_req_kousyou/createitem":
-					TextInformation.Text = GetCreateItemInfo(data);
-					break;
-
 				case "api_get_member/mapinfo":
 					TextInformation.Text = GetMapGauge(data);
 					break;
@@ -127,6 +123,11 @@ namespace ElectronicObserver.Window
 
 				case "api_req_hokyu/charge":
 					TextInformation.Text = GetSupplyInformation(data);
+					break;
+
+				case "api_req_mission/start":
+					if (Utility.Configuration.Config.Control.ShowExpeditionAlertDialog)
+						CheckExpedition(int.Parse(data["api_mission_id"]), int.Parse(data["api_deck_id"]));
 					break;
 
 				case "api_get_member/sortie_conditions":
@@ -343,29 +344,6 @@ namespace ElectronicObserver.Window
 		}
 
 
-		private string GetCreateItemInfo(dynamic data)
-		{
-
-			if ((int)data.api_create_flag == 0)
-			{
-
-				StringBuilder sb = new StringBuilder();
-				sb.AppendLine("[開発失敗]");
-				sb.AppendLine(data.api_fdata);
-
-				EquipmentDataMaster eqm = KCDatabase.Instance.MasterEquipments[int.Parse(((string)data.api_fdata).Split(",".ToCharArray())[1])];
-				if (eqm != null)
-					sb.AppendLine(eqm.Name);
-
-
-				return sb.ToString();
-
-			}
-			else
-				return "";
-		}
-
-
 		private string GetMapGauge(dynamic data)
 		{
 
@@ -439,7 +417,7 @@ namespace ElectronicObserver.Window
 
 		private string CheckGimmickUpdated(dynamic data)
 		{
-			if (data.api_m1() && data.api_m1 == 1)
+			if ((data.api_m1() && data.api_m1 != 0) || (data.api_m2() && data.api_m2 != 0))
 			{
 				Utility.Logger.Add(2, "海域に変化を確認しました！");
 				return "\r\n＊ギミック解除＊\r\n";
@@ -528,6 +506,20 @@ namespace ElectronicObserver.Window
 				if (Utility.Configuration.Config.Control.ShowSallyAreaAlertDialog)
 					MessageBox.Show("出撃札がついていない艦娘が編成されています。\r\n注意して出撃してください。\r\n\r\n（この警告は 設定→動作 から無効化できます。）", "誤出撃警告",
 						MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
+		}
+
+		private void CheckExpedition(int missionID, int fleetID)
+		{
+			var fleet = KCDatabase.Instance.Fleet[fleetID];
+			var result = MissionClearCondition.Check(missionID, fleet);
+
+			if (!result.IsSuceeded)
+			{
+				var mission = KCDatabase.Instance.Mission[missionID];
+				MessageBox.Show(
+					$"#{fleet.FleetID} {fleet.Name} の遠征 {mission.DisplayID}:{mission.Name} は、失敗する可能性があります。\r\n\r\n{string.Join("\r\n", result.FailureReason)}\r\n\r\n（この警告は 設定→動作 から無効化できます。）",
+					"遠征失敗警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			}
 		}
 
