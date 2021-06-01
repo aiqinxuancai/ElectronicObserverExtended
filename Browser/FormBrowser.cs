@@ -90,7 +90,7 @@ namespace Browser
 		/// </summary>
 		private bool IsKanColleLoaded { get; set; }
 
-		private VolumeManager _volumeManager;
+		private VolumeManager _volumeManager = null;
 
 		private string _lastScreenShotPath;
 
@@ -116,7 +116,6 @@ namespace Browser
 
 			ServerUri = serverUri;
 			StyleSheetApplied = false;
-			_volumeManager = new VolumeManager((uint)Process.GetCurrentProcess().Id);
 
 
 			// 音量設定用コントロールの追加
@@ -220,7 +219,7 @@ namespace Browser
 						AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
 						Environment.Is64BitProcess ? "x64" : "x86",
 						"CefSharp.BrowserSubprocess.exe"),
-				CachePath = BrowserCachePath,
+				CachePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), BrowserCachePath),
 				Locale = "ja",
 				AcceptLanguageList = "ja,en-US,en",        // todo: いる？
 				LogSeverity = Configuration.SavesBrowserLog ? LogSeverity.Error : LogSeverity.Disable,
@@ -237,7 +236,7 @@ namespace Browser
 			Cef.Initialize(settings, false, (IBrowserProcessHandler)null);
 
 
-			var requestHandler = new RequestHandler(pixiSettingEnabled: Configuration.PreserveDrawingBuffer);
+			var requestHandler = new CustomRequestHandler(pixiSettingEnabled: Configuration.PreserveDrawingBuffer);
 			requestHandler.RenderProcessTerminated += (mes) => AddLog(3, mes);
 
 			Browser = new ChromiumWebBrowser(@"about:blank")
@@ -250,12 +249,12 @@ namespace Browser
 				DragHandler = new DragHandler(),
 			};
 			Browser.LoadingStateChanged += Browser_LoadingStateChanged;
-            Browser.IsBrowserInitializedChanged += Browser_IsBrowserInitializedChanged;
+			Browser.IsBrowserInitializedChanged += Browser_IsBrowserInitializedChanged;
 			SizeAdjuster.Controls.Add(Browser);
-        }
+		}
 
-      
-        void Exit()
+
+		void Exit()
 		{
 			if (!BrowserHost.Closed)
 			{
@@ -289,7 +288,7 @@ namespace Browser
 			ToolMenu_Other_AppliesStyleSheet.Checked = Configuration.AppliesStyleSheet;
 			ToolMenu.Dock = (DockStyle)Configuration.ToolMenuDockStyle;
 			ToolMenu.Visible = Configuration.IsToolMenuVisible;
-
+			ToolMenu_Other_ClearCache.Visible = conf.EnableDebugMenu;
 		}
 
 		private void ConfigurationUpdated()
@@ -489,41 +488,41 @@ namespace Browser
 
 
 
-        // タイミングによっては(特に起動時)、ブラウザの初期化が完了する前に Navigate() が呼ばれることがある
-        // その場合ロードに失敗してブラウザが白画面でスタートしてしまう（手動でログインページを開けば続行は可能だが）
-        // 応急処置として失敗したとき後で再試行するようにしてみる
-        private string navigateCache = null;
-        private void Browser_IsBrowserInitializedChanged(object sender, IsBrowserInitializedChangedEventArgs e)
-        {
-            if (IsBrowserInitialized && navigateCache != null)
-            {
-                // ロードが完了したので再試行
-                string url = navigateCache;            // 非同期コールするのでコピーを取っておく必要がある
-                BeginInvoke((Action)(() => Navigate(url)));
-                navigateCache = null;
-            }
-        }
+		// タイミングによっては(特に起動時)、ブラウザの初期化が完了する前に Navigate() が呼ばれることがある
+		// その場合ロードに失敗してブラウザが白画面でスタートしてしまう（手動でログインページを開けば続行は可能だが）
+		// 応急処置として失敗したとき後で再試行するようにしてみる
+		private string navigateCache = null;
+		private void Browser_IsBrowserInitializedChanged(object sender, EventArgs e)
+		{
+			if (IsBrowserInitialized && navigateCache != null)
+			{
+				// ロードが完了したので再試行
+				string url = navigateCache;            // 非同期コールするのでコピーを取っておく必要がある
+				BeginInvoke((Action)(() => Navigate(url)));
+				navigateCache = null;
+			}
+		}
 
-        /// <summary>
-        /// 指定した URL のページを開きます。
-        /// </summary>
-        public void Navigate(string url)
+		/// <summary>
+		/// 指定した URL のページを開きます。
+		/// </summary>
+		public void Navigate(string url)
 		{
 			if (url != Configuration.LogInPageURL || !Configuration.AppliesStyleSheet)
 				StyleSheetApplied = false;
 			Browser.Load(url);
 
-            if (!IsBrowserInitialized)
-            {
-                // 大方ロードできないのであとで再試行する
-                navigateCache = url;
-            }
-        }
+			if (!IsBrowserInitialized)
+			{
+				// 大方ロードできないのであとで再試行する
+				navigateCache = url;
+			}
+		}
 
-        /// <summary>
-        /// ブラウザを再読み込みします。
-        /// </summary>
-        public void RefreshBrowser() => RefreshBrowser(false);
+		/// <summary>
+		/// ブラウザを再読み込みします。
+		/// </summary>
+		public void RefreshBrowser() => RefreshBrowser(false);
 
 		/// <summary>
 		/// ブラウザを再読み込みします。
@@ -788,17 +787,6 @@ namespace Browser
 		}
 
 
-		/// <summary>
-		/// キャッシュを削除します。
-		/// </summary>
-		private bool ClearCache(long timeoutMilliseconds = 5000)
-		{
-			// note: Cef が起動している状態では削除できない X(
-			// 今のところ手動でやってもらうことにする
-
-			return true;
-		}
-
 
 		public void SetIconResource(byte[] canvas)
 		{
@@ -850,6 +838,11 @@ namespace Browser
 		}
 
 
+		private void TryGetVolumeManager()
+		{
+			_volumeManager = VolumeManager.CreateInstanceByProcessName("CefSharp.BrowserSubprocess");
+		}
+
 		private void SetVolumeState()
 		{
 
@@ -858,6 +851,11 @@ namespace Browser
 
 			try
 			{
+				if (_volumeManager == null)
+				{
+					TryGetVolumeManager();
+				}
+
 				mute = _volumeManager.IsMute;
 				volume = _volumeManager.Volume * 100;
 
@@ -865,6 +863,7 @@ namespace Browser
 			catch (Exception)
 			{
 				// 音量データ取得不能時
+				_volumeManager = null;
 				mute = false;
 				volume = 100;
 			}
@@ -965,6 +964,11 @@ namespace Browser
 
 		private void ToolMenu_Other_Mute_Click(object sender, EventArgs e)
 		{
+			if (_volumeManager == null)
+			{
+				TryGetVolumeManager();
+			}
+
 			try
 			{
 				_volumeManager.ToggleMute();
@@ -982,6 +986,11 @@ namespace Browser
 		{
 
 			var control = ToolMenu_Other_Volume_VolumeControl;
+
+			if (_volumeManager == null)
+			{
+				TryGetVolumeManager();
+			}
 
 			try
 			{
@@ -1219,6 +1228,14 @@ namespace Browser
 			Browser.GetBrowser().ShowDevTools();
 		}
 
+		private void ToolMenu_Other_ClearCache_Click(object sender, EventArgs e)
+		{
+			if (MessageBox.Show("キャッシュをクリアするため、ブラウザを再起動します。\r\nよろしいですか？\r\n※環境によっては本ツールが終了する場合があります。その場合は再起動してください。", "ブラウザ再起動確認",
+				MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+			{
+				BrowserHost.AsyncRemoteRun(() => BrowserHost.Proxy.ClearCache());
+			}
+		}
 
 		protected override void WndProc(ref Message m)
 		{
@@ -1251,12 +1268,24 @@ namespace Browser
 
 		public byte[] TakeScreenShotAsPngBytes()
 		{
-			var screenShot = Task.Run(TakeScreenShot);
-			using (var stream = new MemoryStream())
+			try
 			{
-				screenShot.Result.Save(stream, ImageFormat.Png);
-				return stream.ToArray();
+				var screenShot = Task.Run(TakeScreenShot).Result; // Blocks here
+				if (screenShot != null)
+				{
+					using (var stream = new MemoryStream())
+					{
+						screenShot.Save(stream, ImageFormat.Png);
+						return stream.ToArray();
+					}
+				}
 			}
+			catch (Exception ex)
+			{
+				SendErrorReport(ex.ToString(), "Failed to TakeScreenShotAsPngBytes.");
+			}
+
+			return new byte[0];
 		}
 
 		#region 呪文
@@ -1276,9 +1305,8 @@ namespace Browser
 
 
 
+
 		#endregion
-
-
 	}
 
 

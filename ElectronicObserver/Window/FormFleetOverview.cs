@@ -191,6 +191,7 @@ namespace ElectronicObserver.Window
 			o["api_req_member/updatedeckname"].RequestReceived += Updated;
 			o["api_req_map/start"].RequestReceived += Updated;
 			o["api_req_hensei/combined"].RequestReceived += Updated;
+			o["api_req_kaisou/open_exslot"].RequestReceived += Updated;
 
 			o["api_port/port"].ResponseReceived += Updated;
 			o["api_get_member/ship2"].ResponseReceived += Updated;
@@ -208,9 +209,10 @@ namespace ElectronicObserver.Window
 			o["api_req_kaisou/slot_exchange_index"].ResponseReceived += Updated;
 			o["api_get_member/require_info"].ResponseReceived += Updated;
 			o["api_req_kaisou/slot_deprive"].ResponseReceived += Updated;
-            o["api_req_kaisou/marriage"].ResponseReceived += Updated;
+			o["api_req_kaisou/marriage"].ResponseReceived += Updated;
+			o["api_req_map/anchorage_repair"].ResponseReceived += Updated;
 
-            Utility.Configuration.Instance.ConfigurationChanged += ConfigurationChanged;
+			Utility.Configuration.Instance.ConfigurationChanged += ConfigurationChanged;
 		}
 
 		void ConfigurationChanged()
@@ -264,7 +266,7 @@ namespace ElectronicObserver.Window
 				var landing = members.Select(s => s.AllSlotInstanceMaster.Count(eq => eq?.CategoryType == EquipmentTypes.LandingCraft || eq?.CategoryType == EquipmentTypes.SpecialAmphibiousTank));
 
 
-				ToolTipInfo.SetToolTip(CombinedTag, string.Format("ドラム缶搭載: {0}個\r\n大発動艇搭載: {1}個\r\n輸送量(TP): S {2} / A {3}\r\n\r\n制空戦力合計: {4}\r\n索敵能力合計: {5:f2}\r\n新判定式(33):\r\n　分岐点係数1: {6:f2}\r\n　分岐点係数3: {7:f2}\r\n　分岐点係数4: {8:f2}",
+				ToolTipInfo.SetToolTip(CombinedTag, string.Format("ドラム缶搭載: {0}個\r\n大発動艇搭載: {1}個\r\n輸送量(TP): S {2} / A {3}\r\n\r\n制空戦力合計: {4}\r\n索敵能力合計: {5:f2}\r\n新判定式(33):\r\n　分岐点係数1: {6:f2}\r\n　分岐点係数2: {7:f2}\r\n　分岐点係数3: {8:f2}\r\n　分岐点係数4: {9:f2}",
 					transport.Sum(),
 					landing.Sum(),
 					tp,
@@ -272,6 +274,7 @@ namespace ElectronicObserver.Window
 					Calculator.GetAirSuperiority(fleet1) + Calculator.GetAirSuperiority(fleet2),
 					Math.Floor(fleet1.GetSearchingAbility() * 100) / 100 + Math.Floor(fleet2.GetSearchingAbility() * 100) / 100,
 					Math.Floor(Calculator.GetSearchingAbility_New33(fleet1, 1) * 100) / 100 + Math.Floor(Calculator.GetSearchingAbility_New33(fleet2, 1) * 100) / 100,
+					Math.Floor(Calculator.GetSearchingAbility_New33(fleet1, 2) * 100) / 100 + Math.Floor(Calculator.GetSearchingAbility_New33(fleet2, 2) * 100) / 100,
 					Math.Floor(Calculator.GetSearchingAbility_New33(fleet1, 3) * 100) / 100 + Math.Floor(Calculator.GetSearchingAbility_New33(fleet2, 3) * 100) / 100,
 					Math.Floor(Calculator.GetSearchingAbility_New33(fleet1, 4) * 100) / 100 + Math.Floor(Calculator.GetSearchingAbility_New33(fleet2, 4) * 100) / 100
 					));

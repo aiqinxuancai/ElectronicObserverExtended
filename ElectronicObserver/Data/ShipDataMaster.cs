@@ -94,19 +94,30 @@ namespace ElectronicObserver.Data
 		public int RemodelSteel => !RawData.api_afterfuel() ? 0 : (int)RawData.api_afterfuel;
 
 		/// <summary>
-		/// 改装に改装設計図が必要かどうか
+		/// 改装に必要な 改装設計図 の枚数
 		/// </summary>
 		public int NeedBlueprint { get; internal set; }
 
 		/// <summary>
-		/// 改装に試製甲板カタパルトが必要かどうか
+		/// 改装に必要な 試製甲板カタパルト の個数
 		/// </summary>
 		public int NeedCatapult { get; internal set; }
 
 		/// <summary>
-		/// 改装に戦闘詳報が必要かどうか
+		/// 改装に必要な 戦闘詳報 の枚数
 		/// </summary>
 		public int NeedActionReport { get; internal set; }
+
+		/// <summary>
+		/// 改装に必要な 新型航空兵装資材 の個数
+		/// </summary>
+		public int NeedAviationMaterial { get; internal set; }
+
+		/// <summary>
+		/// 改装に必要な 新型兵装資材 の個数
+		/// </summary>
+		public int NeedArmamentMaterial { get; internal set; }
+
 
 
 		#region Parameters
@@ -514,7 +525,7 @@ namespace ElectronicObserver.Data
 		/// </summary>
 		public string ResourcePortVoiceVersion => GraphicData?.PortVoiceVersion ?? "";
 
-		
+
 
 		/// <summary>
 		/// 衣替え艦：ベースとなる艦船ID
@@ -651,6 +662,11 @@ namespace ElectronicObserver.Data
 		/// 空母系か (軽空母/正規空母/装甲空母)
 		/// </summary>
 		public bool IsAircraftCarrier => ShipType == ShipTypes.LightAircraftCarrier || ShipType == ShipTypes.AircraftCarrier || ShipType == ShipTypes.ArmoredAircraftCarrier;
+
+		/// <summary>
+		/// 護衛空母か
+		/// </summary>
+		public bool IsEscortAircraftCarrier => ShipType == ShipTypes.LightAircraftCarrier && ASW.Minimum > 0;
 
 
 		/// <summary>

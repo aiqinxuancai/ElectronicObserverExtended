@@ -110,8 +110,8 @@ namespace ElectronicObserver.Data
 					return "SSホロ'";
 				case 6:
 					return "SSホロ+";
-                case 7:
-                    return "SS++";
+				case 7:
+					return "SS++";
 				default:
 					return "不明";
 			}
@@ -138,8 +138,8 @@ namespace ElectronicObserver.Data
 					return 6;
 				case 6:
 					return 7;
-                case 7:
-                    return 8;
+				case 7:
+					return 8;
 				default:
 					return 0;
 			}
@@ -377,12 +377,29 @@ namespace ElectronicObserver.Data
 				case 83: return "Casablanca級";
 				case 84: return "Essex級";
 				case 85: return "日振型";
-				case 86: return "呂号潜水艦";
+				case 86: return "呂号潜水艦";			// "潜水艦" が艦種と被るので省くべき?
 				case 87: return "John C.Butler級";
 				case 88: return "Nelson級";
 				case 89: return "Gotland級";
 				case 90: return "日進型";
 				case 91: return "Fletcher級";
+				case 92: return "L.d.S.D.d.Abruzzi級";
+				case 93: return "Colorado級";
+				case 94: return "御蔵型";
+				case 95: return "Northampton級";
+				case 96: return "Perth級";
+				case 97: return "陸軍特種船(R1)";
+				case 98: return "De Ruyter級";
+				case 99: return "Atlanta級";
+				case 100: return "迅鯨型";
+				case 101: return "松型";
+				case 102: return "South Dakota級";
+				case 103: return "巡潜丙型";
+				case 104: return "丁型海防艦";		// 86 に同じ
+				case 105: return "Yorktown級";
+				case 106: return "St. Louis級";
+				case 107: return "North Carolina級";
+				case 108: return "Town級";
 				default: return "不明";
 			}
 		}
@@ -421,6 +438,8 @@ namespace ElectronicObserver.Data
 					return "船団護衛成功";
 				case 9:
 					return "揚陸地点";
+				case 10:
+					return "泊地";
 				default:
 					return "不明";
 			}
@@ -768,13 +787,17 @@ namespace ElectronicObserver.Data
 					return "Nelson Touch";
 				case DayAttackKind.SpecialNagato:
 					return "一斉射かッ…胸が熱いな！";
-                case DayAttackKind.SpecialMutsu:
-                    return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
-                case DayAttackKind.ZuiunMultiAngle:
-                    return "瑞雲立体攻撃";
-                case DayAttackKind.SeaAirMultiAngle:
-                    return "海空立体攻撃";
-                case DayAttackKind.Shelling:
+				case DayAttackKind.SpecialMutsu:
+					return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
+				case DayAttackKind.SpecialColorado:
+					return "Colorado Touch";
+				case DayAttackKind.SpecialKongo:
+					return "僚艦夜戦突撃";
+				case DayAttackKind.ZuiunMultiAngle:
+					return "瑞雲立体攻撃";
+				case DayAttackKind.SeaAirMultiAngle:
+					return "海空立体攻撃";
+				case DayAttackKind.Shelling:
 					return "砲撃";
 				case DayAttackKind.AirAttack:
 					return "空撃";
@@ -829,9 +852,13 @@ namespace ElectronicObserver.Data
 					return "Nelson Touch";
 				case NightAttackKind.SpecialNagato:
 					return "一斉射かッ…胸が熱いな！";
-                case NightAttackKind.SpecialMutsu:
-                    return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
-                case NightAttackKind.Shelling:
+				case NightAttackKind.SpecialMutsu:
+					return "長門、いい？ いくわよ！ 主砲一斉射ッ！";
+				case NightAttackKind.SpecialColorado:
+					return "Colorado Touch";
+				case NightAttackKind.SpecialKongo:
+					return "僚艦夜戦突撃";
+				case NightAttackKind.Shelling:
 					return "砲撃";
 				case NightAttackKind.AirAttack:
 					return "空撃";
@@ -853,7 +880,7 @@ namespace ElectronicObserver.Data
 					return "揚陸攻撃(特大発戦車)";
 				default:
 					return "不明(" + (int)id + ")";
-            }
+			}
 		}
 
 
@@ -936,6 +963,12 @@ namespace ElectronicObserver.Data
 					return "Fletcher砲改x2/GFCS<Johnston>";
 				case 37:
 					return "Fletcher砲改x2<Johnston>";
+				case 39:
+					return "Atlanta砲+GFCS/Atlanta砲<Atlanta>";
+				case 40:
+					return "Atlanta砲x2/GFCS<Atlanta>";
+				case 41:
+					return "Atlanta砲x2<Atlanta>";
 				default:
 					return "不明(" + id + ")";
 			}
@@ -1081,6 +1114,33 @@ namespace ElectronicObserver.Data
 					return "単";
 				case 5:     //その他(輸送5/空母3)
 					return "他";
+
+					// 以下、厳密には LabelType だが面倒なので
+				case 101:
+					return "1";
+				case 102:
+					return "2";
+				case 103:
+					return "3";
+				case 104:
+					return "4";
+				case 105:
+					return "5";
+				case 106:
+					return "6";
+				case 107:
+					return "7";
+				case 108:
+					return "8";
+				case 109:
+					return "9";
+				case 110:
+					return "10";
+				case 111:
+					return "11";
+				case 112:
+					return "12";
+
 				default:
 					return "?";
 			}
@@ -1098,6 +1158,8 @@ namespace ElectronicObserver.Data
 				case 1:
 					return "編成";
 				case 2:
+				case 8:
+				case 9:
 					return "出撃";
 				case 3:
 					return "演習";
@@ -1109,9 +1171,7 @@ namespace ElectronicObserver.Data
 					return "工廠";
 				case 7:
 					return "改装";
-				case 8:
-					return "出撃";
-				case 9:
+				case 10:
 					return "他";
 				default:
 					return "不明";

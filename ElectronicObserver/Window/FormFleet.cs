@@ -1,5 +1,4 @@
-﻿using Codeplex.Data;
-using ElectronicObserver.Data;
+﻿using ElectronicObserver.Data;
 using ElectronicObserver.Observer;
 using ElectronicObserver.Resource;
 using ElectronicObserver.Utility.Data;
@@ -133,7 +132,7 @@ namespace ElectronicObserver.Window
 				BranchWeight--;
 				if (BranchWeight <= 0)
 					BranchWeight = 4;
-				
+
 				Update(KCDatabase.Instance.Fleet[fleetID]);
 			}
 
@@ -457,13 +456,14 @@ namespace ElectronicObserver.Window
 				{
 
 					bool isEscaped = KCDatabase.Instance.Fleet[Parent.FleetID].EscapedShipList.Contains(shipMasterID);
-
+					var equipments = ship.AllSlotInstance.Where(eq => eq != null);
 
 					Name.Text = ship.MasterShip.NameWithClass;
 					Name.Tag = ship.ShipID;
 					ToolTipInfo.SetToolTip(Name,
 						string.Format(
-							"{0} {1}\r\n火力: {2}/{3}\r\n雷装: {4}/{5}\r\n対空: {6}/{7}\r\n装甲: {8}/{9}\r\n対潜: {10}/{11}\r\n回避: {12}/{13}\r\n索敵: {14}/{15}\r\n運: {16}\r\n射程: {17} / 速力: {18}\r\n(右クリックで図鑑)\n",
+							"{0}{1} {2}\r\n火力: {3}/{4}\r\n雷装: {5}/{6}\r\n対空: {7}/{8}\r\n装甲: {9}/{10}\r\n対潜: {11}/{12}\r\n回避: {13}/{14}\r\n索敵: {15}/{16}\r\n運: {17}\r\n命中: {18:+#;-#;+0}\r\n爆装: {19:+#;-#;+0}\r\n射程: {20} / 速力: {21}\r\n(右クリックで図鑑)\n",
+							ship.SallyArea > 0 ? $"[{ship.SallyArea}] " : "",
 							ship.MasterShip.ShipTypeName, ship.NameWithLevel,
 							ship.FirepowerBase, ship.FirepowerTotal,
 							ship.TorpedoBase, ship.TorpedoTotal,
@@ -473,6 +473,8 @@ namespace ElectronicObserver.Window
 							ship.EvasionBase, ship.EvasionTotal,
 							ship.LOSBase, ship.LOSTotal,
 							ship.LuckTotal,
+							equipments.Any() ? equipments.Sum(eq => eq.MasterEquipment.Accuracy) : 0,
+							equipments.Any() ? equipments.Sum(eq => eq.MasterEquipment.Bomber) : 0,
 							Constants.GetRange(ship.Range),
 							Constants.GetSpeed(ship.Speed)
 							));
@@ -585,7 +587,7 @@ namespace ElectronicObserver.Window
 
 					Condition.Text = ship.Condition.ToString();
 					Condition.Tag = ship.Condition;
-					SetConditionDesign(ship.Condition);
+					SetConditionDesign(Condition, ship.Condition);
 
 					if (ship.Condition < 49)
 					{
@@ -724,6 +726,9 @@ namespace ElectronicObserver.Window
 						Calculator.GetProportionalAirDefense(adjustedaa)
 						);
 
+					double rocket = Calculator.GetAARocketBarrageProbability(ship);
+					if (rocket > 0)
+						sb.AppendLine($"対空噴進弾幕: {rocket:p1}");
 				}
 
 				{
@@ -765,43 +770,6 @@ namespace ElectronicObserver.Window
 				return sb.ToString();
 			}
 
-			private void SetConditionDesign(int cond)
-			{
-
-				if (Condition.ImageAlign == ContentAlignment.MiddleCenter)
-				{
-					// icon invisible
-					Condition.ImageIndex = -1;
-
-					if (cond < 20)
-						Condition.BackColor = Color.LightCoral;
-					else if (cond < 30)
-						Condition.BackColor = Color.LightSalmon;
-					else if (cond < 40)
-						Condition.BackColor = Color.Moccasin;
-					else if (cond < 50)
-						Condition.BackColor = Color.Transparent;
-					else
-						Condition.BackColor = Color.LightGreen;
-
-				}
-				else
-				{
-					Condition.BackColor = Color.Transparent;
-
-					if (cond < 20)
-						Condition.ImageIndex = (int)ResourceManager.IconContent.ConditionVeryTired;
-					else if (cond < 30)
-						Condition.ImageIndex = (int)ResourceManager.IconContent.ConditionTired;
-					else if (cond < 40)
-						Condition.ImageIndex = (int)ResourceManager.IconContent.ConditionLittleTired;
-					else if (cond < 50)
-						Condition.ImageIndex = (int)ResourceManager.IconContent.ConditionNormal;
-					else
-						Condition.ImageIndex = (int)ResourceManager.IconContent.ConditionSparkle;
-
-				}
-			}
 
 			public void ConfigurationChanged(FormFleet parent)
 			{
@@ -811,7 +779,7 @@ namespace ElectronicObserver.Window
 				HP.MainFont = parent.MainFont;
 				HP.SubFont = parent.SubFont;
 				Condition.Font = parent.MainFont;
-				SetConditionDesign((Condition.Tag as int?) ?? 49);
+				SetConditionDesign(Condition, (Condition.Tag as int?) ?? 49);
 				Equipments.Font = parent.SubFont;
 			}
 
@@ -826,6 +794,36 @@ namespace ElectronicObserver.Window
 
 			}
 		}
+
+		public static void SetConditionDesign(ImageLabel label, int cond)
+		{
+
+			if (label.ImageAlign == ContentAlignment.MiddleCenter)
+			{
+				// icon invisible
+				label.ImageIndex = -1;
+
+				label.BackColor =
+					cond < 20 ? Color.LightCoral :
+					cond < 30 ? Color.LightSalmon :
+					cond < 40 ? Color.Moccasin :
+					cond < 50 ? Color.Transparent :
+					Color.LightGreen;
+			}
+			else
+			{
+				label.BackColor = Color.Transparent;
+
+				label.ImageIndex =
+					cond < 20 ? (int)ResourceManager.IconContent.ConditionVeryTired :
+					cond < 30 ? (int)ResourceManager.IconContent.ConditionTired :
+					cond < 40 ? (int)ResourceManager.IconContent.ConditionLittleTired :
+					cond < 50 ? (int)ResourceManager.IconContent.ConditionNormal :
+					(int)ResourceManager.IconContent.ConditionSparkle;
+
+			}
+		}
+
 
 
 
@@ -904,6 +902,7 @@ namespace ElectronicObserver.Window
 			o["api_req_kaisou/remodeling"].RequestReceived += Updated;
 			o["api_req_map/start"].RequestReceived += Updated;
 			o["api_req_hensei/combined"].RequestReceived += Updated;
+			o["api_req_kaisou/open_exslot"].RequestReceived += Updated;
 
 			o["api_port/port"].ResponseReceived += Updated;
 			o["api_get_member/ship2"].ResponseReceived += Updated;
@@ -922,8 +921,8 @@ namespace ElectronicObserver.Window
 			o["api_req_kaisou/slot_exchange_index"].ResponseReceived += Updated;
 			o["api_get_member/require_info"].ResponseReceived += Updated;
 			o["api_req_kaisou/slot_deprive"].ResponseReceived += Updated;
-            o["api_req_kaisou/marriage"].ResponseReceived += Updated;
-
+			o["api_req_kaisou/marriage"].ResponseReceived += Updated;
+			o["api_req_map/anchorage_repair"].ResponseReceived += Updated;
 
 			//追加するときは FormFleetOverview にも同様に追加してください
 
@@ -1234,15 +1233,38 @@ namespace ElectronicObserver.Window
 			Clipboard.SetData(DataFormats.StringFormat, sb.ToString());
 		}
 
+		/// <summary>
+		/// 「艦隊分析 -艦これ-」の艦隊情報反映用フォーマットでコピー
+		/// https://kancolle-fleetanalysis.firebaseapp.com/#/
+		/// </summary>
+		private void ContextMenuFleet_CopyToFleetAnalysis_Click(object sender, EventArgs e)
+		{
+			var sb = new StringBuilder();
+
+			sb.Append("[");
+			foreach (var ship in KCDatabase.Instance.Ships.Values.Where(s => s.IsLocked))
+			{
+				sb.AppendFormat(@"{{""api_ship_id"":{0},""api_lv"":{1},""api_kyouka"":[{2}],""api_exp"":[{3}]}},",
+					ship.ShipID, ship.Level, string.Join(",", (int[])ship.RawData.api_kyouka), string.Join(",", (int[])ship.RawData.api_exp));
+			}
+			sb.Remove(sb.Length - 1, 1);        // remove ","
+			sb.Append("]");
+
+			Clipboard.SetData(DataFormats.StringFormat, sb.ToString());
+		}
+
 
 		private void ContextMenuFleet_AntiAirDetails_Click(object sender, EventArgs e)
 		{
 
 			var dialog = new DialogAntiAirDefense();
 
-			dialog.SetFleetID(FleetID);
-			dialog.Show(this);
+			if (KCDatabase.Instance.Fleet.CombinedFlag != 0 && (FleetID == 1 || FleetID == 2))
+				dialog.SetFleetID(5);
+			else
+				dialog.SetFleetID(FleetID);
 
+			dialog.Show(this);
 		}
 
 
@@ -1382,6 +1404,8 @@ namespace ElectronicObserver.Window
 			}
 			base.Dispose(disposing);
 		}
+
+
 	}
 
 }

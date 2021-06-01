@@ -681,7 +681,7 @@ namespace ElectronicObserver.Data
                         break;
 
                     case EquipmentTypes.DepthCharge:
-                        if (slot.MasterEquipment.IsDepthChargeProjector)
+                        if (!slot.MasterEquipment.IsDepthCharge)
                             basepower += Math.Sqrt(slot.Level) * 0.75;
                         break;
 
@@ -990,7 +990,7 @@ namespace ElectronicObserver.Data
             }
 
             //キャップ
-            basepower = Math.Floor(CapDamage(basepower, 150));
+            basepower = Math.Floor(CapDamage(basepower, 170));
 
             return (int)(basepower * GetAmmoDamageRate());
         }
@@ -1013,7 +1013,7 @@ namespace ElectronicObserver.Data
             basepower += GetLightCruiserDamageBonus() + GetItalianDamageBonus();
 
             // キャップ
-            basepower = Math.Floor(CapDamage(basepower, 180));
+            basepower = Math.Floor(CapDamage(basepower, 220));
 
             // 弾着観測射撃
             switch (attackKind)
@@ -1031,6 +1031,13 @@ namespace ElectronicObserver.Data
                 case DayAttackKind.CutinMainMain:
                     basepower *= 1.5;
                     break;
+				case DayAttackKind.ZuiunMultiAngle:
+					basepower *= 1.35;
+					break;
+				case DayAttackKind.SeaAirMultiAngle:
+					basepower *= 1.3;
+					break;
+				
             }
 
             return (int)(basepower * GetAmmoDamageRate());
@@ -1051,7 +1058,7 @@ namespace ElectronicObserver.Data
             basepower *= GetHPDamageBonus() * GetEngagementFormDamageRate(engagementForm);
 
             // キャップ
-            basepower = Math.Floor(CapDamage(basepower, 180));
+            basepower = Math.Floor(CapDamage(basepower, 220));
 
 
             // 空母カットイン
@@ -1141,7 +1148,7 @@ namespace ElectronicObserver.Data
                     case EquipmentTypes.DepthCharge:
                         if (slot.IsDepthCharge)
                             depthChargeCount++;
-                        else
+                        else if (slot.IsDepthChargeProjector)
                             depthChargeProjectorCount++;
                         break;
                     case EquipmentTypes.SonarLarge:
@@ -1159,7 +1166,7 @@ namespace ElectronicObserver.Data
 
 
             //キャップ
-            basepower = Math.Floor(CapDamage(basepower, 150));
+            basepower = Math.Floor(CapDamage(basepower, 170));
 
             return (int)(basepower * GetAmmoDamageRate());
         }
@@ -1178,7 +1185,7 @@ namespace ElectronicObserver.Data
             basepower *= GetTorpedoHPDamageBonus() * GetEngagementFormDamageRate(engagementForm);
 
             //キャップ
-            basepower = Math.Floor(CapDamage(basepower, 150));
+            basepower = Math.Floor(CapDamage(basepower, 180));
 
 
             return (int)(basepower * GetAmmoDamageRate());
@@ -1275,21 +1282,37 @@ namespace ElectronicObserver.Data
                     break;
 
                 case NightAttackKind.CutinTorpedoRadar:
-                    if (ShipID == 543 && AllSlotInstanceMaster.Any(eq => eq?.EquipmentID == 267))     // 長波改二 + 12.7cm連装砲D型改二
-                        basepower *= 1.625;
-                    else
-                        basepower *= 1.3;
+					{
+						double baseModifier = 1.3;
+						int typeDmod2 = AllSlotInstanceMaster.Count(eq => eq?.EquipmentID == 267);  // 12.7cm連装砲D型改二
+						int typeDmod3 = AllSlotInstanceMaster.Count(eq => eq?.EquipmentID == 366);  // 12.7cm連装砲D型改三
+						var modifierTable = new double[] { 1, 1.25, 1.4 };
+
+						baseModifier *= modifierTable[Math.Min(typeDmod2 + typeDmod3, modifierTable.Length - 1)] * (1 + typeDmod3 * 0.05);
+
+						basepower *= baseModifier;
+					}
+                    
                     break;
 
                 case NightAttackKind.CutinTorpedoPicket:
-                    basepower *= 1.25;
-                    break;
+					{
+						double baseModifier = 1.25;		// TODO: 処理の共通化
+						int typeDmod2 = AllSlotInstanceMaster.Count(eq => eq?.EquipmentID == 267);  // 12.7cm連装砲D型改二
+						int typeDmod3 = AllSlotInstanceMaster.Count(eq => eq?.EquipmentID == 366);  // 12.7cm連装砲D型改三
+						var modifierTable = new double[] { 1, 1.25, 1.4 };
+
+						baseModifier *= modifierTable[Math.Min(typeDmod2 + typeDmod3, modifierTable.Length - 1)] * (1 + typeDmod3 * 0.05);
+
+						basepower *= baseModifier;
+					}
+					break;
             }
 
             basepower += GetLightCruiserDamageBonus() + GetItalianDamageBonus();
 
             //キャップ
-            basepower = Math.Floor(CapDamage(basepower, 300));
+            basepower = Math.Floor(CapDamage(basepower, 360));
 
 
             return (int)(basepower * GetAmmoDamageRate());
@@ -1368,6 +1391,10 @@ namespace ElectronicObserver.Data
                     case 689:       // Johnston改
                     case 596:       // Fletcher
                     case 692:       // Fletcher改
+                    case 628:       // Fletcher改 Mod.2
+                    case 629:       // Fletcher Mk.II
+                    case 893:       // Janus改
+                    case 624:       // 夕張改二丁
                         return true;
                 }
 
@@ -1383,10 +1410,10 @@ namespace ElectronicObserver.Data
 
                     case 554:   // 日向改二
                         // カ号観測機, オ号観測機改, オ号観測機改二
-                        if (eqs.Any(eq => eq.EquipmentID == 69 || eq.EquipmentID == 324 || eq.EquipmentID == 325))
+                        if (eqs.Count(eq => eq.EquipmentID == 69 || eq.EquipmentID == 324 || eq.EquipmentID == 325) >= 2)
                             return true;
                         // S-51J, S-51J改
-                        if (eqs.Count(eq => eq.EquipmentID == 326) >= 2 || eqs.Count(eq => eq.EquipmentID == 327) >= 2)
+                        if (eqs.Any(eq => eq.EquipmentID == 326 || eq.EquipmentID == 327))
                             return true;
 
                         return false;
@@ -1451,8 +1478,8 @@ namespace ElectronicObserver.Data
                     if (master.ShipType != ShipTypes.ArmoredAircraftCarrier && HPRate <= 0.5)
                         return false;
 
-                    // Saratoga Mk.II/赤城改二戊 は不要
-                    bool hasNightPersonnel = master.ShipID == 545 || master.ShipID == 599 ||
+                    // Saratoga Mk.II/赤城改二戊/加賀改二戊 は不要
+                    bool hasNightPersonnel = master.ShipID == 545 || master.ShipID == 599 || master.ShipID == 610 ||
                         AllSlotInstanceMaster.Any(eq => eq != null && eq.IsNightAviationPersonnel);
 
                     bool hasNightAircraft = AllSlotInstanceMaster.Any(eq => eq != null && eq.IsNightAircraft);

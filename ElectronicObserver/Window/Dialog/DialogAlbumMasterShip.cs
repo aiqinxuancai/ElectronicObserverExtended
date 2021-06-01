@@ -14,6 +14,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -48,6 +49,7 @@ namespace ElectronicObserver.Window.Dialog
 			TitleEvasion.ImageList =
 			TitleLOS.ImageList =
 			TitleLuck.ImageList =
+			Accuracy.ImageList =
 			TitleSpeed.ImageList =
 			TitleRange.ImageList =
 			Rarity.ImageList =
@@ -89,6 +91,7 @@ namespace ElectronicObserver.Window.Dialog
 			TitleEvasion.ImageIndex = (int)ResourceManager.IconContent.ParameterEvasion;
 			TitleLOS.ImageIndex = (int)ResourceManager.IconContent.ParameterLOS;
 			TitleLuck.ImageIndex = (int)ResourceManager.IconContent.ParameterLuck;
+			Accuracy.ImageIndex = (int)ResourceManager.IconContent.ParameterAccuracy;
 			TitleSpeed.ImageIndex = (int)ResourceManager.IconContent.ParameterSpeed;
 			TitleRange.ImageIndex = (int)ResourceManager.IconContent.ParameterRange;
 			Fuel.ImageIndex = (int)ResourceManager.IconContent.ResourceFuel;
@@ -296,16 +299,19 @@ namespace ElectronicObserver.Window.Dialog
 			ToolTipInfo.SetToolTip(ResourceName, string.Format("リソース名: {0}\r\nグラフィック ver. {1}\r\nボイス ver. {2}\r\n母港ボイス ver. {3}\r\n({4})",
 				ship.ResourceName, ship.ResourceGraphicVersion, ship.ResourceVoiceVersion, ship.ResourcePortVoiceVersion, Constants.GetVoiceFlag(ship.VoiceFlag)));
 
-
-			ShipType.Text = ship.IsLandBase ? "陸上施設" : ship.ShipTypeName;
 			{
+				string shipClassName = Constants.GetShipClass(ship.ShipClass);
+				bool isShipClassUnknown = shipClassName == "不明";
+
+				ShipType.Text = (ship.IsAbyssalShip ? "深海" : isShipClassUnknown ? "" : shipClassName) + (ship.IsLandBase ? "陸上施設" : ship.ShipTypeName);
+
 				var tip = new StringBuilder();
 				if (ship.IsAbyssalShip)
 					tip.AppendLine($"艦型ID: {ship.ShipClass}");
-				else if (Constants.GetShipClass(ship.ShipClass) == "不明")
+				else if (isShipClassUnknown)
 					tip.AppendLine($"艦型不明: {ship.ShipClass}");
 				else
-					tip.AppendLine($"{Constants.GetShipClass(ship.ShipClass)}: {ship.ShipClass}");
+					tip.AppendLine($"{shipClassName}: {ship.ShipClass}");
 
 				tip.AppendLine();
 				tip.AppendLine("装備可能：");
@@ -357,6 +363,7 @@ namespace ElectronicObserver.Window.Dialog
 				LuckMin.Text = ship.LuckMin.ToString();
 				LuckMax.Text = ship.LuckMax.ToString();
 
+				Accuracy.Visible = false;
 			}
 			else
 			{
@@ -366,18 +373,20 @@ namespace ElectronicObserver.Window.Dialog
 				int torpedo = ship.TorpedoMax;
 				int aa = ship.AAMax;
 				int armor = ship.ArmorMax;
-				int asw = ship.ASW != null && ship.ASW.Maximum != ShipParameterRecord.Parameter.MaximumDefault ? ship.ASW.Maximum : 0;
-				int evasion = ship.Evasion != null && ship.Evasion.Maximum != ShipParameterRecord.Parameter.MaximumDefault ? ship.Evasion.Maximum : 0;
-				int los = ship.LOS != null && ship.LOS.Maximum != ShipParameterRecord.Parameter.MaximumDefault ? ship.LOS.Maximum : 0;
+				int asw = ship.ASW?.IsDetermined ?? false ? ship.ASW.Maximum : 0;
+				int evasion = ship.Evasion?.IsDetermined ?? false ? ship.Evasion.Maximum : 0;
+				int los = ship.LOS?.IsDetermined ?? false ? ship.LOS.Maximum : 0;
 				int luck = ship.LuckMax;
+				int accuracy = 0;
 
 				if (ship.DefaultSlot != null)
 				{
 					int count = ship.DefaultSlot.Count;
 					for (int i = 0; i < count; i++)
 					{
-						EquipmentDataMaster eq = KCDatabase.Instance.MasterEquipments[ship.DefaultSlot[i]];
-						if (eq == null) continue;
+						var eq = KCDatabase.Instance.MasterEquipments[ship.DefaultSlot[i]];
+						if (eq == null)
+							continue;
 
 						firepower += eq.Firepower;
 						torpedo += eq.Torpedo;
@@ -387,6 +396,7 @@ namespace ElectronicObserver.Window.Dialog
 						evasion += eq.Evasion;
 						los += eq.LOS;
 						luck += eq.Luck;
+						accuracy += eq.Accuracy;
 					}
 				}
 
@@ -410,17 +420,44 @@ namespace ElectronicObserver.Window.Dialog
 				ArmorMin.Text = ship.ArmorMax.ToString();
 				ArmorMax.Text = armor.ToString();
 
-				ASWMin.Text = ship.ASW != null && ship.ASW.Maximum != ShipParameterRecord.Parameter.MaximumDefault ? ship.ASW.Maximum.ToString() : "???";
-				ASWMax.Text = asw.ToString();
+				if (ship.ASW?.IsDetermined ?? false)
+				{
+					ASWMin.Text = ship.ASW.Maximum.ToString();
+					ASWMax.Text = asw.ToString();
+				}
+				else
+				{
+					ASWMin.Text = "???";
+					ASWMax.Text = asw.ToString("+0;-0");
+				}
 
-				EvasionMin.Text = ship.Evasion != null && ship.Evasion.Maximum != ShipParameterRecord.Parameter.MaximumDefault ? ship.Evasion.Maximum.ToString() : "???";
-				EvasionMax.Text = evasion.ToString();
+				if (ship.Evasion?.IsDetermined ?? false)
+				{
+					EvasionMin.Text = ship.Evasion.Maximum.ToString();
+					EvasionMax.Text = evasion.ToString();
+				}
+				else
+				{
+					EvasionMin.Text = "???";
+					EvasionMax.Text = evasion.ToString("+0;-0");
+				}
 
-				LOSMin.Text = ship.LOS != null && ship.LOS.Maximum != ShipParameterRecord.Parameter.MaximumDefault ? ship.LOS.Maximum.ToString() : "???";
-				LOSMax.Text = los.ToString();
+				if (ship.LOS?.IsDetermined ?? false)
+				{
+					LOSMin.Text = ship.LOS.Maximum.ToString();
+					LOSMax.Text = los.ToString();
+				}
+				else
+				{
+					LOSMin.Text = "???";
+					LOSMax.Text = los.ToString("+0;-0");
+				}
 
 				LuckMin.Text = ship.LuckMax > 0 ? ship.LuckMax.ToString() : "???";
 				LuckMax.Text = luck > 0 ? luck.ToString() : "???";
+
+				Accuracy.Text = accuracy.ToString("+0;-0");
+				Accuracy.Visible = true;
 
 			}
 			UpdateLevelParameter(ship.ShipID);
@@ -470,7 +507,7 @@ namespace ElectronicObserver.Window.Dialog
 
 			TableConsumption.ResumeLayout();
 
-			Description.Text = ship.MessageAlbum != "" ? ship.MessageAlbum : ship.MessageGet;
+			Description.Text = ship.MessageAlbum != "" ? FormatDescription(ship.MessageAlbum) : FormatDescription(ship.MessageGet);
 			Description.Tag = ship.MessageAlbum != "" ? 1 : 0;
 
 
@@ -532,9 +569,9 @@ namespace ElectronicObserver.Window.Dialog
 							if (eq.AA != 0) sb.AppendFormat("対空 {0:+0;-0}\r\n", eq.AA);
 							if (eq.Armor != 0) sb.AppendFormat("装甲 {0:+0;-0}\r\n", eq.Armor);
 							if (eq.ASW != 0) sb.AppendFormat("対潜 {0:+0;-0}\r\n", eq.ASW);
-							if (eq.Evasion != 0) sb.AppendFormat("回避 {0:+0;-0}\r\n", eq.Evasion);
+							if (eq.Evasion != 0) sb.AppendFormat("{0} {1:+0;-0}\r\n", eq.CategoryType == EquipmentTypes.Interceptor ? "迎撃" : "回避", eq.Evasion);
 							if (eq.LOS != 0) sb.AppendFormat("索敵 {0:+0;-0}\r\n", eq.LOS);
-							if (eq.Accuracy != 0) sb.AppendFormat("命中 {0:+0;-0}\r\n", eq.Accuracy);
+							if (eq.Accuracy != 0) sb.AppendFormat("{0} {1:+0;-0}\r\n", eq.CategoryType == EquipmentTypes.Interceptor ? "対爆" : "命中", eq.Accuracy);
 							if (eq.Bomber != 0) sb.AppendFormat("爆装 {0:+0;-0}\r\n", eq.Bomber);
 							sb.AppendLine("(右クリックで図鑑)");
 
@@ -881,6 +918,7 @@ namespace ElectronicObserver.Window.Dialog
 				ship.NeedCatapult > 0 ? (int)ResourceManager.IconContent.ItemCatapult :
 				ship.NeedActionReport > 0 ? (int)ResourceManager.IconContent.ItemActionReport :
 				ship.NeedBlueprint > 0 ? (int)ResourceManager.IconContent.ItemBlueprint :
+				ship.NeedAviationMaterial > 0 ? (int)ResourceManager.IconContent.ItemAviationMaterial :
 				-1;
 		}
 
@@ -893,6 +931,8 @@ namespace ElectronicObserver.Window.Dialog
 				sb.AppendLine("試製甲板カタパルト: " + ship.NeedCatapult);
 			if (ship.NeedActionReport > 0)
 				sb.AppendLine("戦闘詳報: " + ship.NeedActionReport);
+			if (ship.NeedAviationMaterial > 0)
+				sb.AppendLine("新型航空兵装資材: " + ship.NeedAviationMaterial);
 
 			return sb.ToString();
 		}
@@ -910,7 +950,7 @@ namespace ElectronicObserver.Window.Dialog
 					using (StreamWriter sw = new StreamWriter(SaveCSVDialog.FileName, false, Utility.Configuration.Config.Log.FileEncoding))
 					{
 
-						sw.WriteLine("艦船ID,図鑑番号,艦型,艦種,艦名,読み,ソート順,改装前,改装後,改装Lv,改装弾薬,改装鋼材,改装設計図,カタパルト,戦闘詳報,改装段階,耐久初期,耐久結婚,耐久最大,火力初期,火力最大,雷装初期,雷装最大,対空初期,対空最大,装甲初期,装甲最大,対潜初期,対潜最大,回避初期,回避最大,索敵初期,索敵最大,運初期,運最大,速力,射程,レア,スロット数,搭載機数1,搭載機数2,搭載機数3,搭載機数4,搭載機数5,初期装備1,初期装備2,初期装備3,初期装備4,初期装備5,建造時間,解体燃料,解体弾薬,解体鋼材,解体ボーキ,改修火力,改修雷装,改修対空,改修装甲,ドロップ文章,図鑑文章,搭載燃料,搭載弾薬,ボイス,リソース名,画像バージョン,ボイスバージョン,母港ボイスバージョン");
+						sw.WriteLine("艦船ID,図鑑番号,艦型,艦種,艦名,読み,ソート順,改装前,改装後,改装Lv,改装弾薬,改装鋼材,改装設計図,カタパルト,戦闘詳報,新型航空兵装資材,改装段階,耐久初期,耐久結婚,耐久最大,火力初期,火力最大,雷装初期,雷装最大,対空初期,対空最大,装甲初期,装甲最大,対潜初期,対潜最大,回避初期,回避最大,索敵初期,索敵最大,運初期,運最大,速力,射程,レア,スロット数,搭載機数1,搭載機数2,搭載機数3,搭載機数4,搭載機数5,初期装備1,初期装備2,初期装備3,初期装備4,初期装備5,建造時間,解体燃料,解体弾薬,解体鋼材,解体ボーキ,改修火力,改修雷装,改修対空,改修装甲,ドロップ文章,図鑑文章,搭載燃料,搭載弾薬,ボイス,リソース名,画像バージョン,ボイスバージョン,母港ボイスバージョン");
 
 						foreach (ShipDataMaster ship in KCDatabase.Instance.MasterShips.Values)
 						{
@@ -933,6 +973,7 @@ namespace ElectronicObserver.Window.Dialog
 								ship.NeedBlueprint > 0 ? ship.NeedBlueprint + "枚" : "-",
 								ship.NeedCatapult > 0 ? ship.NeedCatapult + "個" : "-",
 								ship.NeedActionReport > 0 ? ship.NeedActionReport + "枚" : "-",
+								ship.NeedAviationMaterial > 0 ? ship.NeedAviationMaterial + "個" : "-",
 								ship.RemodelTier,
 								ship.HPMin,
 								ship.HPMaxMarried,
@@ -1016,7 +1057,7 @@ namespace ElectronicObserver.Window.Dialog
 					using (StreamWriter sw = new StreamWriter(SaveCSVDialog.FileName, false, Utility.Configuration.Config.Log.FileEncoding))
 					{
 
-						sw.WriteLine(string.Format("艦船ID,図鑑番号,艦名,読み,艦種,艦型,ソート順,改装前,改装後,改装Lv,改装弾薬,改装鋼材,改装設計図,カタパルト,戦闘詳報,改装段階,耐久初期,耐久最大,耐久結婚,耐久改修,火力初期,火力最大,雷装初期,雷装最大,対空初期,対空最大,装甲初期,装甲最大,対潜初期最小,対潜初期最大,対潜最大,対潜{0}最小,対潜{0}最大,回避初期最小,回避初期最大,回避最大,回避{0}最小,回避{0}最大,索敵初期最小,索敵初期最大,索敵最大,索敵{0}最小,索敵{0}最大,運初期,運最大,速力,射程,レア,スロット数,搭載機数1,搭載機数2,搭載機数3,搭載機数4,搭載機数5,初期装備1,初期装備2,初期装備3,初期装備4,初期装備5,建造時間,解体燃料,解体弾薬,解体鋼材,解体ボーキ,改修火力,改修雷装,改修対空,改修装甲,ドロップ文章,図鑑文章,搭載燃料,搭載弾薬,ボイス,リソース名,画像バージョン,ボイスバージョン,母港ボイスバージョン", ExpTable.ShipMaximumLevel));
+						sw.WriteLine(string.Format("艦船ID,図鑑番号,艦名,読み,艦種,艦型,ソート順,改装前,改装後,改装Lv,改装弾薬,改装鋼材,改装設計図,カタパルト,戦闘詳報,新型航空兵装資材,改装段階,耐久初期,耐久最大,耐久結婚,耐久改修,火力初期,火力最大,雷装初期,雷装最大,対空初期,対空最大,装甲初期,装甲最大,対潜初期最小,対潜初期最大,対潜最大,対潜{0}最小,対潜{0}最大,回避初期最小,回避初期最大,回避最大,回避{0}最小,回避{0}最大,索敵初期最小,索敵初期最大,索敵最大,索敵{0}最小,索敵{0}最大,運初期,運最大,速力,射程,レア,スロット数,搭載機数1,搭載機数2,搭載機数3,搭載機数4,搭載機数5,初期装備1,初期装備2,初期装備3,初期装備4,初期装備5,建造時間,解体燃料,解体弾薬,解体鋼材,解体ボーキ,改修火力,改修雷装,改修対空,改修装甲,ドロップ文章,図鑑文章,搭載燃料,搭載弾薬,ボイス,リソース名,画像バージョン,ボイスバージョン,母港ボイスバージョン", ExpTable.ShipMaximumLevel));
 
 						foreach (ShipDataMaster ship in KCDatabase.Instance.MasterShips.Values)
 						{
@@ -1037,6 +1078,7 @@ namespace ElectronicObserver.Window.Dialog
 								ship.NeedBlueprint,
 								ship.NeedCatapult,
 								ship.NeedActionReport,
+								ship.NeedAviationMaterial,
 								ship.RemodelTier,
 								ship.HPMin,
 								ship.HPMax,
@@ -1138,15 +1180,21 @@ namespace ElectronicObserver.Window.Dialog
 
 			if (tag == 0 && ship.MessageAlbum.Length > 0)
 			{
-				Description.Text = ship.MessageAlbum;
+				Description.Text = FormatDescription(ship.MessageAlbum);
 				Description.Tag = 1;
-
 			}
 			else
 			{
-				Description.Text = ship.MessageGet;
+				Description.Text = FormatDescription(ship.MessageGet);
 				Description.Tag = 0;
 			}
+		}
+
+		private string FormatDescription(string description)
+		{
+			// 本家の改行がアレなので、区切り文字+改行 以外の改行を削除する
+			var regex = new Regex(@"([^、。,\.！？!\?])\r\n");
+			return regex.Replace(description, "$1");
 		}
 
 
@@ -1392,6 +1440,8 @@ namespace ElectronicObserver.Window.Dialog
 						append.Add("要カタパルト");
 					if (before.NeedActionReport > 0)
 						append.Add("要戦闘詳報");
+					if (before.NeedAviationMaterial > 0)
+						append.Add("要新型航空兵装資材");
 
 					sb.AppendFormat("改造前: {0} Lv. {1} ({2})\r\n",
 						before.NameWithClass, before.RemodelAfterLevel, string.Join(", ", append));
@@ -1413,6 +1463,8 @@ namespace ElectronicObserver.Window.Dialog
 						append.Add("要カタパルト");
 					if (ship.NeedActionReport > 0)
 						append.Add("要戦闘詳報");
+					if (ship.NeedAviationMaterial > 0)
+						append.Add("要新型航空兵装資材");
 
 					sb.AppendFormat("改造後: {0} Lv. {1} ({2})\r\n",
 						ship.RemodelAfterShip.NameWithClass, ship.RemodelAfterLevel, string.Join(", ", append));
@@ -1581,7 +1633,7 @@ namespace ElectronicObserver.Window.Dialog
 			{
 
 				// google <艦船名> 艦これ
-				System.Diagnostics.Process.Start(@"https://www.google.co.jp/search?q=%22" + Uri.EscapeDataString(ship.NameWithClass) + "%22+%E8%89%A6%E3%81%93%E3%82%8C");
+				System.Diagnostics.Process.Start(@"https://www.google.co.jp/search?q=%22" + Uri.EscapeDataString(ship.NameWithClass.Replace("+", "＋")) + "%22+%E8%89%A6%E3%81%93%E3%82%8C");
 
 			}
 			catch (Exception ex)
@@ -1636,6 +1688,48 @@ namespace ElectronicObserver.Window.Dialog
 
 			}
 			Clipboard.SetText(sb.ToString());
+		}
+
+		private void StripMenu_File_MergeDefaultRecord_Click(object sender, EventArgs e)
+		{
+			if (MessageBox.Show("デフォルトレコードの情報をもとに、艦船レコードを更新します。\r\nよろしいですか？", "レコード更新確認", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Cancel)
+			{
+				return;
+			}
+
+			var parameterRecord = RecordManager.Instance.ShipParameter;
+
+
+			string temporaryPath = null;
+			try
+			{
+				temporaryPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+				Resource.ResourceManager.CopyFromArchive("Record/" + parameterRecord.FileName, temporaryPath, false, true);
+
+				int count = 0;
+				using (var reader = new StreamReader(temporaryPath, Utility.Configuration.Config.Log.FileEncoding))
+				{
+					while (!reader.EndOfStream)
+					{
+						count += parameterRecord.Merge(reader.ReadLine()) ? 1 : 0;
+					}
+				}
+
+				if (count == 0)
+					Utility.Logger.Add(2, "更新できるレコードがありませんでした。お使いのデータは十分に更新されています。");
+				else
+					Utility.Logger.Add(2, count + " 件の艦船レコードの更新が完了しました。開き直すと反映されます。");
+			}
+			catch (Exception ex)
+			{
+				Utility.ErrorReporter.SendErrorReport(ex, "デフォルトレコードとのマージに失敗しました。");
+			}
+			finally
+			{
+				if (temporaryPath != null)
+					File.Delete(temporaryPath);
+			}
+
 		}
 	}
 }

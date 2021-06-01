@@ -64,7 +64,8 @@ namespace ElectronicObserver.Resource
 			ItemBlueprint,
 			ItemCatapult,
 			ItemPresentBox,
-            ItemActionReport,
+			ItemActionReport,
+			ItemAviationMaterial,
 			FormArsenal,
 			FormBattle,
 			FormCompass,
@@ -91,7 +92,8 @@ namespace ElectronicObserver.Resource
 			FormAntiAirDefense,
 			FormFleetImageGenerator,
 			FormExpChecker,
-            FormExpeditionCheck,
+			FormExpeditionCheck,
+			FormFleetPreset,
 			FleetNoShip,
 			FleetDocking,
 			FleetSortieDamaged,
@@ -214,6 +216,8 @@ namespace ElectronicObserver.Resource
 			NightFighter,
 			NightAttacker,
 			LandASPatrol,
+			Reserved48,			// 艦これ本体側が未実装
+			HeavyBomber,
 			Locked,
 			Unknown,
 		}
@@ -298,9 +302,10 @@ namespace ElectronicObserver.Resource
 				LoadImageFromArchive(Icons, archive, mstpath + @"Item/Blueprint.png", "Item_Blueprint");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Item/Catapult.png", "Item_Catapult");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Item/PresentBox.png", "Item_PresentBox");
-                LoadImageFromArchive(Icons, archive, mstpath + @"Item/ActionReport.png", "Item_ActionReport");
+				LoadImageFromArchive(Icons, archive, mstpath + @"Item/ActionReport.png", "Item_ActionReport");
+				LoadImageFromArchive(Icons, archive, mstpath + @"Item/AviationMaterial.png", "Item_AviationMaterial");
 
-                LoadImageFromArchive(Icons, archive, mstpath + @"Form/Arsenal.png", "Form_Arsenal");
+				LoadImageFromArchive(Icons, archive, mstpath + @"Form/Arsenal.png", "Form_Arsenal");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/Battle.png", "Form_Battle");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/Compass.png", "Form_Compass");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/Dock.png", "Form_Dock");
@@ -326,9 +331,10 @@ namespace ElectronicObserver.Resource
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/AntiAirDefense.png", "Form_AntiAirDefense");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/FleetImageGenerator.png", "Form_FleetImageGenerator");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Form/ExpChecker.png", "Form_ExpChecker");
-                LoadImageFromArchive(Icons, archive, mstpath + @"Form/ExpeditionCheck.png", "Form_ExpeditionCheck");
+				LoadImageFromArchive(Icons, archive, mstpath + @"Form/ExpeditionCheck.png", "Form_ExpeditionCheck");
+				LoadImageFromArchive(Icons, archive, mstpath + @"Form/FleetPreset.png", "Form_FleetPreset");
 
-                LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/NoShip.png", "Fleet_NoShip");
+				LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/NoShip.png", "Fleet_NoShip");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/Docking.png", "Fleet_Docking");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/SortieDamaged.png", "Fleet_SortieDamaged");
 				LoadImageFromArchive(Icons, archive, mstpath + @"Fleet/Sortie.png", "Fleet_Sortie");
@@ -456,6 +462,8 @@ namespace ElectronicObserver.Resource
 				LoadImageFromArchive(Equipments, archive, mstpath + @"Equipment/NightFighter.png", "Equipment_NightFighter");
 				LoadImageFromArchive(Equipments, archive, mstpath + @"Equipment/NightAttacker.png", "Equipment_NightAttacker");
 				LoadImageFromArchive(Equipments, archive, mstpath + @"Equipment/LandASPatrol.png", "Equipment_LandASPatrol");
+				LoadImageFromArchive(Equipments, archive, mstpath + @"Equipment/Unknown.png", "Equipment_Reserved48");                   // 艦これ本体側が未実装
+				LoadImageFromArchive(Equipments, archive, mstpath + @"Equipment/HeavyBomber.png", "Equipment_HeavyBomber");
 				LoadImageFromArchive(Equipments, archive, mstpath + @"Equipment/Locked.png", "Equipment_Locked");
 				LoadImageFromArchive(Equipments, archive, mstpath + @"Equipment/Unknown.png", "Equipment_Unknown");
 
@@ -620,7 +628,7 @@ namespace ElectronicObserver.Resource
 		/// <returns>コピーに成功すれば true 。それ以外は false 。</returns>
 		public static bool CopyFromArchive(string source, string destination, bool checkexist = true, bool convertEncoding = false)
 		{
-			return CopyFromArchive(AssetFilePath, source, destination, checkexist);
+			return CopyFromArchive(AssetFilePath, source, destination, checkexist, convertEncoding);
 		}
 
 

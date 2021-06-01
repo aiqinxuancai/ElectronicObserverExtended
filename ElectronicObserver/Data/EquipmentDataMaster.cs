@@ -196,7 +196,8 @@ namespace ElectronicObserver.Data
 		/// <summary> 後期型魚雷かどうか </summary>
 		public bool IsLateModelTorpedo =>
 			EquipmentID == 213 ||   // 後期型艦首魚雷(6門)
-			EquipmentID == 214;     // 熟練聴音員+後期型艦首魚雷(6門)
+			EquipmentID == 214 ||   // 熟練聴音員+後期型艦首魚雷(6門)
+			EquipmentID == 383;     // 後期型53cm艦首魚雷(8門)
 
 
 		/// <summary> 高角砲かどうか </summary>
@@ -225,10 +226,11 @@ namespace ElectronicObserver.Data
 					case EquipmentTypes.SeaplaneFighter:
 					case EquipmentTypes.LandBasedAttacker:
 					case EquipmentTypes.Interceptor:
+					case EquipmentTypes.HeavyBomber:
 					case EquipmentTypes.JetFighter:
 					case EquipmentTypes.JetBomber:
 					case EquipmentTypes.JetTorpedo:
-
+					
 					case EquipmentTypes.CarrierBasedRecon:
 					case EquipmentTypes.SeaplaneRecon:
 					case EquipmentTypes.FlyingBoat:
@@ -258,6 +260,7 @@ namespace ElectronicObserver.Data
 					case EquipmentTypes.SeaplaneFighter:
 					case EquipmentTypes.LandBasedAttacker:
 					case EquipmentTypes.Interceptor:
+					case EquipmentTypes.HeavyBomber:
 					case EquipmentTypes.JetFighter:
 					case EquipmentTypes.JetBomber:
 					case EquipmentTypes.JetTorpedo:
@@ -303,6 +306,7 @@ namespace ElectronicObserver.Data
 					case EquipmentTypes.ASPatrol:
 					case EquipmentTypes.FlyingBoat:
 					case EquipmentTypes.LandBasedAttacker:
+					case EquipmentTypes.HeavyBomber:
 					case EquipmentTypes.JetBomber:
 					case EquipmentTypes.JetTorpedo:
 						return ASW > 0;
@@ -344,8 +348,10 @@ namespace ElectronicObserver.Data
 			EquipmentID == 226 ||       // 九五式爆雷 
 			EquipmentID == 227;         // 二式爆雷
 
-		/// <summary> 爆雷投射機かどうか(爆雷は含まない) </summary>
-		public bool IsDepthChargeProjector => CategoryType == EquipmentTypes.DepthCharge && !IsDepthCharge;
+		/// <summary> 爆雷投射機かどうか(爆雷/対潜迫撃砲は含まない) </summary>
+		public bool IsDepthChargeProjector =>
+			EquipmentID == 44 ||        // 九四式爆雷投射機
+			EquipmentID == 45;          // 三式爆雷投射機
 
 
 		/// <summary> 夜間作戦航空要員かどうか </summary>
@@ -353,9 +359,15 @@ namespace ElectronicObserver.Data
 			EquipmentID == 258 ||       // 夜間作戦航空要員
 			EquipmentID == 259;         // 夜間作戦航空要員+熟練甲板員
 
+		/// <summary> 高高度局戦かどうか </summary>
+		public bool IsHightAltitudeFighter =>
+			EquipmentID == 350 ||   // Me163B
+			EquipmentID == 351 ||   // 試製 秋水
+			EquipmentID == 352;     // 秋水
 
-
-
+		/// <summary> 対空噴進弾幕が発動可能なロケットランチャーかどうか </summary>
+		public bool IsAARocketLauncher =>
+			EquipmentID == 274;
 
 
 

@@ -31,6 +31,7 @@ namespace ElectronicObserver.Window.Dialog
 			EquipmentTypes.LandBasedAttacker,
 			EquipmentTypes.Interceptor,
 			EquipmentTypes.LandBasedRecon,
+			EquipmentTypes.HeavyBomber,
 			EquipmentTypes.JetFighter,
 			EquipmentTypes.JetBomber,
 			EquipmentTypes.JetTorpedo,
@@ -44,6 +45,7 @@ namespace ElectronicObserver.Window.Dialog
 			EquipmentTypes.CarrierBasedTorpedo,
 			EquipmentTypes.SeaplaneBomber,
 			EquipmentTypes.LandBasedAttacker,
+			EquipmentTypes.HeavyBomber,
 			EquipmentTypes.JetBomber,
 			EquipmentTypes.JetTorpedo,
 		};
@@ -202,7 +204,9 @@ namespace ElectronicObserver.Window.Dialog
 				}
 				else
 				{
-					int aircraftCount = equipment.EquipmentInstance.IsCombatAircraft ? 18 : 4;
+					int aircraftCount = 
+						equipment.EquipmentInstance.CategoryType == EquipmentTypes.HeavyBomber ? 9 :
+						equipment.EquipmentInstance.IsCombatAircraft ? 18 : 4;
 					AircraftCount.Value = AircraftCount.Maximum = aircraftCount;
 
 					ToolTipInternal.SetToolTip(Aircraft, GetAircraftParameters(equipment.EquipmentInstance));
@@ -355,6 +359,7 @@ namespace ElectronicObserver.Window.Dialog
 
 			public DialogBaseAirCorpsSimulation Parent;
 			public ToolTip ToolTipInternal;
+			public bool IsHighAltitude => Parent.TopMenu_Settings_HighAltitude.Checked;
 
 			public event EventHandler Updated = delegate { };
 
@@ -453,6 +458,7 @@ namespace ElectronicObserver.Window.Dialog
 
 				Parent = parent;
 				ToolTipInternal = parent.ToolTipInfo;
+				Parent.TopMenu_Settings_HighAltitude.CheckedChanged += BaseAirCorpsUI_Updated;
 
 				BaseAirCorpsUI_Updated(null, new EventArgs());
 			}
@@ -525,7 +531,7 @@ namespace ElectronicObserver.Window.Dialog
 			{
 
 				var squadrons = Squadrons.Select(sq => sq.Aircraft.SelectedItem as ComboBoxEquipment)
-					.Where(eq => eq != null && eq.EquipmentInstance != null);
+					.Where(eq => eq?.EquipmentInstance != null);
 
 
 				int airSortie = Squadrons.Select(sq => sq.AirSuperioritySortie.Tag as int? ?? 0).Sum();
@@ -541,7 +547,8 @@ namespace ElectronicObserver.Window.Dialog
 
 
 				int airDefense = Squadrons.Select(sq => sq.AirSuperiorityAirDefense.Tag as int? ?? 0).Sum();
-				airDefense = (int)(airDefense * squadrons.Select(eq => Calculator.GetAirSuperiorityAirDefenseReconBonus(eq.EquipmentID)).DefaultIfEmpty(1).Max());
+				double highAltitude = IsHighAltitude ? Math.Min(0.5 + squadrons.Count(eq => eq.EquipmentInstance.IsHightAltitudeFighter) * 0.3, 1.2) : 1.0;
+				airDefense = (int)(airDefense * squadrons.Select(eq => Calculator.GetAirSuperiorityAirDefenseReconBonus(eq.EquipmentID)).DefaultIfEmpty(1).Max() * highAltitude);
 
 				TotalAirSuperiorityAirDefense.Text = airDefense.ToString();
 				ToolTipInternal.SetToolTip(TotalAirSuperiorityAirDefense,
@@ -1191,6 +1198,9 @@ namespace ElectronicObserver.Window.Dialog
 			}
 		}
 
+		private void TopMenu_Settings_HighAltitude_Click(object sender, EventArgs e)
+		{
 
+		}
 	}
 }
